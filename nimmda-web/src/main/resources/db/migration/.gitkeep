@@ -1,2 +1,0 @@
--- Flyway migrations will go here (V1__..., V2__...).
--- Enable flyway in application.yml when the first table is added.

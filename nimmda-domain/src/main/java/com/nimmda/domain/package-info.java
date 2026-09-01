@@ -1,5 +1,6 @@
 /**
- * Domain layer: entities, value objects, repository ports.
- * No Spring, JPA, or HTTP dependencies.
+ * Domain layer (hexagon core).
+ * Aggregates, value objects, domain events, repository ports.
+ * No Spring, JPA, Mongo, HTTP, or mail dependencies.
  */
 package com.nimmda.domain;
