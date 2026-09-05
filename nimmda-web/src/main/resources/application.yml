@@ -18,6 +18,7 @@ spring:
   data:
     mongodb:
       uri: ${MONGODB_URI:mongodb://127.0.0.1:27017/nimmda}
+      database: ${MONGO_DB:nimmda}
       auto-index-creation: true
   jackson:
     serialization:
