@@ -1,5 +1,6 @@
 package com.nimmda.web.error;
 
+import com.nimmda.application.auth.AuthException;
 import com.nimmda.application.listing.ListingNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -31,7 +32,19 @@ public class GlobalExceptionHandler {
                 .map(error -> error.getField() + " " + error.getDefaultMessage())
                 .orElse("Validation failed")
                 : ex.getMessage();
-        return build(HttpStatus.BAD_REQUEST, message, request.getRequestURI());
+        return build(HttpStatus.BAD_REQUEST, message, request.getRequestURI(), null);
+    }
+
+    @ExceptionHandler(AuthException.class)
+    public ResponseEntity<ApiErrorResponse> handleAuth(AuthException ex, HttpServletRequest request) {
+        HttpStatus status = switch (ex.code()) {
+            case "exists" -> HttpStatus.CONFLICT;
+            case "notFound" -> HttpStatus.NOT_FOUND;
+            case "unverified" -> HttpStatus.FORBIDDEN;
+            case "expired" -> HttpStatus.BAD_REQUEST;
+            default -> HttpStatus.UNAUTHORIZED;
+        };
+        return build(status, ex.getMessage(), request.getRequestURI(), ex.code());
     }
 
     @ExceptionHandler(ListingNotFoundException.class)
@@ -39,7 +52,7 @@ public class GlobalExceptionHandler {
             ListingNotFoundException ex,
             HttpServletRequest request
     ) {
-        return build(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI());
+        return build(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI(), null);
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
@@ -48,22 +61,23 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         String message = ex.getMessage() == null || ex.getMessage().isBlank() ? "Not found" : ex.getMessage();
-        return build(HttpStatus.NOT_FOUND, message, request.getRequestURI());
+        return build(HttpStatus.NOT_FOUND, message, request.getRequestURI(), null);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleUnhandled(Exception ex, HttpServletRequest request) {
         log.error("Unhandled error on {}", request.getRequestURI(), ex);
-        return build(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error", request.getRequestURI());
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error", request.getRequestURI(), null);
     }
 
-    private ResponseEntity<ApiErrorResponse> build(HttpStatus status, String message, String path) {
+    private ResponseEntity<ApiErrorResponse> build(HttpStatus status, String message, String path, String code) {
         ApiErrorResponse body = new ApiErrorResponse(
                 Instant.now(),
                 status.value(),
                 status.getReasonPhrase(),
                 message,
-                path
+                path,
+                code
         );
         return ResponseEntity.status(status).body(body);
     }

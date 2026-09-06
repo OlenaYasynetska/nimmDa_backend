@@ -26,7 +26,7 @@ public class SendAuthMailService implements SendAuthMailUseCase {
         String action = reset ? "Passwort zurücksetzen" : "E-Mail bestätigen";
         String intro = reset
                 ? "Du hast eine Zurücksetzung deines Passworts angefordert."
-                : "Willkommen bei NimmDa. Bitte bestätige deine E-Mail, um dein Verkäuferkonto zu aktivieren.";
+                : "Willkommen bei NimmDa. Bitte bestätige deine E-Mail, um dein Konto zu aktivieren.";
         String html = """
                 <div style="font-family:sans-serif;line-height:1.5;color:#1b3a5f">
                   <h2>NimmDa</h2>

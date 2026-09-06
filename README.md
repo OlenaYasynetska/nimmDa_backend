@@ -28,7 +28,7 @@ nimmda-infrastructure   driven adapters: MySQL/JPA, MongoDB, SMTP, Flyway
 
 Persistence split:
 
-- **MySQL** — listings (relational, Flyway)
+- **MySQL** — users, listings (relational, Flyway)
 - **MongoDB** — conversations / inquiries (document threads)
 
 ## Docker
@@ -55,9 +55,22 @@ Listings: [http://localhost:8080/api/listings](http://localhost:8080/api/listing
 | Method | Path | Store |
 | --- | --- | --- |
 | `GET` | `/api/health` | — |
+| `POST` | `/api/auth/register` | MySQL + mail |
+| `POST` | `/api/auth/login` | MySQL |
+| `POST` | `/api/auth/verify` | MySQL |
+| `POST` | `/api/auth/forgot-password` | MySQL + mail |
+| `POST` | `/api/auth/reset-password` | MySQL |
+| `POST` | `/api/auth/resend-verification` | MySQL + mail |
+| `POST` | `/api/auth/account-mode` | MySQL (JWT) |
 | `POST` | `/api/auth/mail` | SMTP adapter |
 | `GET` | `/api/listings` | MySQL |
 | `GET` | `/api/listings/{id}` | MySQL |
 | `POST` | `/api/listings` | MySQL |
 | `POST` | `/api/listings/{id}/inquiries` | MongoDB |
 | `GET` | `/api/conversations?sellerId=` | MongoDB |
+
+Promote an admin (after that user exists):
+
+```sql
+UPDATE users SET role = 'ADMIN' WHERE email = 'you@example.com';
+```
