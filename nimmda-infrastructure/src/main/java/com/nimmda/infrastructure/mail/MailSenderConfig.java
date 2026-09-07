@@ -16,11 +16,27 @@ public class MailSenderConfig {
     @Primary
     JavaMailSender javaMailSender(
             @Value("${spring.mail.host:smtp.gmail.com}") String host,
-            @Value("${spring.mail.port:587}") int port,
+            @Value("${spring.mail.port:587}") String port,
             @Value("${spring.mail.username:}") String username,
             @Value("${spring.mail.password:}") String password
     ) {
-        return create(host, port, username, password, port == 465);
+        int parsedPort = parsePort(port);
+        return create(host, parsedPort, username, password, parsedPort == 465);
+    }
+
+    static int parsePort(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return 587;
+        }
+        try {
+            int port = Integer.parseInt(raw.trim());
+            if (port > 0 && port < 65536) {
+                return port;
+            }
+        } catch (NumberFormatException ignored) {
+            // Railway MAIL_PORT is sometimes overwritten with MAIL_FROM.
+        }
+        return 587;
     }
 
     static JavaMailSenderImpl create(String host, int port, String username, String password, boolean ssl) {
