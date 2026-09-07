@@ -56,6 +56,7 @@ services:
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200}
       JWT_SECRET: ${JWT_SECRET:-nimmda-dev-jwt-secret-change-me-please-32}
       BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
+      AUTH_EXPOSE_DEV_LINKS: ${AUTH_EXPOSE_DEV_LINKS:-true}
       MAIL_ENABLED: ${MAIL_ENABLED:-false}
       MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
       MAIL_PORT: ${MAIL_PORT:-587}

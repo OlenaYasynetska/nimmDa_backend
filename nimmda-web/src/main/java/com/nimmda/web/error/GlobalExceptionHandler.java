@@ -44,6 +44,7 @@ public class GlobalExceptionHandler {
             case "notFound" -> HttpStatus.NOT_FOUND;
             case "unverified" -> HttpStatus.FORBIDDEN;
             case "expired" -> HttpStatus.BAD_REQUEST;
+            case "mailFailed" -> HttpStatus.SERVICE_UNAVAILABLE;
             default -> HttpStatus.UNAUTHORIZED;
         };
         return build(status, ex.getMessage(), request.getRequestURI(), ex.code());

@@ -95,7 +95,13 @@ public class AuthService implements
             throw new AuthException("invalid");
         }
         if (!user.emailVerified()) {
-            issueMail(user, AuthTokenType.VERIFY);
+            try {
+                issueMail(user, AuthTokenType.VERIFY);
+            } catch (AuthException ex) {
+                if (!"mailFailed".equals(ex.code())) {
+                    throw ex;
+                }
+            }
             throw new AuthException("unverified");
         }
         if (command.accountMode() != null && !command.accountMode().isBlank()) {
@@ -188,7 +194,10 @@ public class AuthService implements
                 : frontendAuthLinks.verifyUrl(token.token());
         String mailType = type == AuthTokenType.RESET ? "reset" : "verify";
         boolean sent = sendAuthMailUseCase.execute(new SendAuthMailCommand(user.email(), mailType, link));
-        return new RegisterUserResult(sent, exposeDevLinks || !sent ? link : null);
+        if (!sent && !exposeDevLinks) {
+            throw new AuthException("mailFailed");
+        }
+        return new RegisterUserResult(sent, exposeDevLinks ? link : null);
     }
 
     private void maybePromoteAdmin(User user) {
