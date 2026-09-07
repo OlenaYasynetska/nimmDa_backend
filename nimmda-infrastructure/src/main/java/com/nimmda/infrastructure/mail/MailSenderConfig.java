@@ -20,6 +20,10 @@ public class MailSenderConfig {
             @Value("${spring.mail.username:}") String username,
             @Value("${spring.mail.password:}") String password
     ) {
+        return create(host, port, username, password, port == 465);
+    }
+
+    static JavaMailSenderImpl create(String host, int port, String username, String password, boolean ssl) {
         JavaMailSenderImpl sender = new JavaMailSenderImpl();
         sender.setHost(host);
         sender.setPort(port);
@@ -28,11 +32,20 @@ public class MailSenderConfig {
         Properties props = sender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.starttls.required", "true");
-        props.put("mail.smtp.connectiontimeout", "10000");
-        props.put("mail.smtp.timeout", "10000");
-        props.put("mail.smtp.writetimeout", "10000");
+        props.put("mail.smtp.connectiontimeout", "20000");
+        props.put("mail.smtp.timeout", "20000");
+        props.put("mail.smtp.writetimeout", "20000");
+        props.put("mail.smtp.ssl.trust", host);
+        props.put("mail.smtp.ssl.protocols", "TLSv1.2");
+        if (ssl) {
+            props.put("mail.smtp.ssl.enable", "true");
+            props.put("mail.smtp.starttls.enable", "false");
+            props.put("mail.smtp.socketFactory.port", String.valueOf(port));
+            props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        } else {
+            props.put("mail.smtp.starttls.enable", "true");
+            props.put("mail.smtp.starttls.required", "true");
+        }
         return sender;
     }
 
@@ -43,7 +56,7 @@ public class MailSenderConfig {
         return password.replace(" ", "").trim();
     }
 
-    private static String blankToNull(String value) {
+    static String blankToNull(String value) {
         if (value == null || value.isBlank()) {
             return null;
         }
