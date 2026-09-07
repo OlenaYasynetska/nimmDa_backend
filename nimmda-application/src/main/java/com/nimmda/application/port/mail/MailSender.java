@@ -5,4 +5,6 @@ public interface MailSender {
     boolean send(MailMessage message);
 
     boolean configured();
+
+    String provider();
 }

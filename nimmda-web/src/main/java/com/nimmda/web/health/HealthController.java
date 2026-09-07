@@ -24,7 +24,8 @@ public class HealthController {
                 "status", "UP",
                 "service", "nimmda-backend",
                 "timestamp", Instant.now().toString(),
-                "mailConfigured", mailSender.configured()
+                "mailConfigured", mailSender.configured(),
+                "mailProvider", mailSender.provider()
         );
     }
 }

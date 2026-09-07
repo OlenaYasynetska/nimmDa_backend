@@ -1,7 +1,6 @@
 package com.nimmda.infrastructure.mail;
 
 import com.nimmda.application.port.mail.MailMessage;
-import com.nimmda.application.port.mail.MailSender;
 import jakarta.annotation.PostConstruct;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
@@ -16,7 +15,7 @@ import org.springframework.stereotype.Component;
 import java.nio.charset.StandardCharsets;
 
 @Component
-public class SmtpMailSenderAdapter implements MailSender {
+public class SmtpMailSenderAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(SmtpMailSenderAdapter.class);
 
@@ -48,12 +47,10 @@ public class SmtpMailSenderAdapter implements MailSender {
         }
     }
 
-    @Override
     public boolean configured() {
         return configured;
     }
 
-    @Override
     public boolean send(MailMessage message) {
         if (!configured) {
             log.warn("Mail not sent to {} (MAIL_USERNAME / MAIL_PASSWORD missing)", message.to());
