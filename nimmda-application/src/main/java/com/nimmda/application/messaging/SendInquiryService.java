@@ -1,12 +1,16 @@
 package com.nimmda.application.messaging;
 
+import com.nimmda.application.auth.AuthException;
 import com.nimmda.application.listing.ListingNotFoundException;
+import com.nimmda.application.security.ForbiddenActionException;
 import com.nimmda.domain.listing.Listing;
 import com.nimmda.domain.listing.ListingId;
 import com.nimmda.domain.listing.ListingRepository;
 import com.nimmda.domain.messaging.Conversation;
 import com.nimmda.domain.messaging.ConversationRepository;
 import com.nimmda.domain.shared.UserId;
+import com.nimmda.domain.user.User;
+import com.nimmda.domain.user.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,13 +19,16 @@ public class SendInquiryService implements SendInquiryUseCase {
 
     private final ListingRepository listingRepository;
     private final ConversationRepository conversationRepository;
+    private final UserRepository userRepository;
 
     public SendInquiryService(
             ListingRepository listingRepository,
-            ConversationRepository conversationRepository
+            ConversationRepository conversationRepository,
+            UserRepository userRepository
     ) {
         this.listingRepository = listingRepository;
         this.conversationRepository = conversationRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -35,6 +42,12 @@ public class SendInquiryService implements SendInquiryUseCase {
         }
 
         UserId buyerId = new UserId(command.buyerId());
+        if (listing.sellerId().equals(buyerId)) {
+            throw new ForbiddenActionException("Cannot inquire own listing");
+        }
+        User buyer = userRepository.findById(buyerId).orElseThrow(() -> new AuthException("notFound"));
+        String buyerName = displayName(buyer);
+
         Conversation conversation = conversationRepository
                 .findByListingAndBuyer(listing.id(), buyerId)
                 .map(existing -> {
@@ -45,7 +58,7 @@ public class SendInquiryService implements SendInquiryUseCase {
                         listing.id(),
                         listing.sellerId(),
                         buyerId,
-                        command.buyerName(),
+                        buyerName,
                         listing.title(),
                         command.message()
                 ));
@@ -54,5 +67,13 @@ public class SendInquiryService implements SendInquiryUseCase {
         listing.recordChat();
         listingRepository.save(listing);
         return ConversationMapper.toView(saved);
+    }
+
+    private static String displayName(User user) {
+        String last = user.lastName();
+        if (last.isBlank()) {
+            return user.firstName();
+        }
+        return user.firstName() + " " + last.charAt(0) + ".";
     }
 }

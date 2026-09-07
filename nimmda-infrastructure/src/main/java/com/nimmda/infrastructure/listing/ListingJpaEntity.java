@@ -35,7 +35,7 @@ public class ListingJpaEntity {
     @Column(name = "location", nullable = false, length = 128)
     private String location;
 
-    @Column(name = "image_src", nullable = false, length = 512)
+    @Column(name = "image_src", nullable = false, columnDefinition = "MEDIUMTEXT")
     private String imageSrc;
 
     @Enumerated(EnumType.STRING)

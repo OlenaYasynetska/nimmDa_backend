@@ -13,7 +13,7 @@ public final class User {
     private String passwordHash;
     private String firstName;
     private String lastName;
-    private final UserRole role;
+    private UserRole role;
     private AccountMode accountMode;
     private boolean emailVerified;
     private final Instant createdAt;
@@ -103,6 +103,11 @@ public final class User {
 
     public void changeAccountMode(AccountMode accountMode) {
         this.accountMode = Objects.requireNonNull(accountMode);
+        this.updatedAt = Instant.now();
+    }
+
+    public void promoteToAdmin() {
+        this.role = UserRole.ADMIN;
         this.updatedAt = Instant.now();
     }
 

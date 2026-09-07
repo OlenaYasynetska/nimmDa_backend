@@ -54,3 +54,4 @@ app:
     ttl-ms: ${JWT_TTL_MS:86400000}
   auth:
     expose-dev-links: ${AUTH_EXPOSE_DEV_LINKS:false}
+    bootstrap-admin-email: ${BOOTSTRAP_ADMIN_EMAIL:}

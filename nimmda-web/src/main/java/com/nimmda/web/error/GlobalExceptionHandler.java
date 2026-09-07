@@ -2,6 +2,8 @@ package com.nimmda.web.error;
 
 import com.nimmda.application.auth.AuthException;
 import com.nimmda.application.listing.ListingNotFoundException;
+import com.nimmda.application.messaging.ConversationNotFoundException;
+import com.nimmda.application.security.ForbiddenActionException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,12 +49,20 @@ public class GlobalExceptionHandler {
         return build(status, ex.getMessage(), request.getRequestURI(), ex.code());
     }
 
-    @ExceptionHandler(ListingNotFoundException.class)
-    public ResponseEntity<ApiErrorResponse> handleListingNotFound(
-            ListingNotFoundException ex,
+    @ExceptionHandler({ListingNotFoundException.class, ConversationNotFoundException.class})
+    public ResponseEntity<ApiErrorResponse> handleNotFoundEntity(
+            RuntimeException ex,
             HttpServletRequest request
     ) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI(), null);
+    }
+
+    @ExceptionHandler(ForbiddenActionException.class)
+    public ResponseEntity<ApiErrorResponse> handleForbidden(
+            ForbiddenActionException ex,
+            HttpServletRequest request
+    ) {
+        return build(HttpStatus.FORBIDDEN, ex.getMessage(), request.getRequestURI(), "forbidden");
     }
 
     @ExceptionHandler(NoResourceFoundException.class)

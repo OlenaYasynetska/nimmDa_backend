@@ -64,12 +64,15 @@ Listings: [http://localhost:8080/api/listings](http://localhost:8080/api/listing
 | `POST` | `/api/auth/account-mode` | MySQL (JWT) |
 | `POST` | `/api/auth/mail` | SMTP adapter |
 | `GET` | `/api/listings` | MySQL |
+| `GET` | `/api/listings/mine` | MySQL (JWT) |
 | `GET` | `/api/listings/{id}` | MySQL |
-| `POST` | `/api/listings` | MySQL |
-| `POST` | `/api/listings/{id}/inquiries` | MongoDB |
-| `GET` | `/api/conversations?sellerId=` | MongoDB |
+| `POST` | `/api/listings` | MySQL (JWT) |
+| `PATCH` | `/api/listings/{id}` | MySQL (JWT) |
+| `POST` | `/api/listings/{id}/inquiries` | MongoDB (JWT) |
+| `GET` | `/api/conversations` | MongoDB (JWT) |
+| `POST` | `/api/conversations/{id}/messages` | MongoDB (JWT) |
 
-Promote an admin (after that user exists):
+Promote an admin after that user exists — SQL or Railway variable `BOOTSTRAP_ADMIN_EMAIL`:
 
 ```sql
 UPDATE users SET role = 'ADMIN' WHERE email = 'you@example.com';

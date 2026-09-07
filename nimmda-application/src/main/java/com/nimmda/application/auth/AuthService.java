@@ -42,6 +42,7 @@ public class AuthService implements
     private final SendAuthMailUseCase sendAuthMailUseCase;
     private final FrontendAuthLinks frontendAuthLinks;
     private final boolean exposeDevLinks;
+    private final String bootstrapAdminEmail;
 
     public AuthService(
             UserRepository userRepository,
@@ -50,7 +51,8 @@ public class AuthService implements
             AccessTokenIssuer accessTokenIssuer,
             SendAuthMailUseCase sendAuthMailUseCase,
             FrontendAuthLinks frontendAuthLinks,
-            @Value("${app.auth.expose-dev-links:false}") boolean exposeDevLinks
+            @Value("${app.auth.expose-dev-links:false}") boolean exposeDevLinks,
+            @Value("${app.auth.bootstrap-admin-email:}") String bootstrapAdminEmail
     ) {
         this.userRepository = userRepository;
         this.authTokenRepository = authTokenRepository;
@@ -59,6 +61,7 @@ public class AuthService implements
         this.sendAuthMailUseCase = sendAuthMailUseCase;
         this.frontendAuthLinks = frontendAuthLinks;
         this.exposeDevLinks = exposeDevLinks;
+        this.bootstrapAdminEmail = bootstrapAdminEmail == null ? "" : bootstrapAdminEmail.trim();
     }
 
     @Override
@@ -97,8 +100,9 @@ public class AuthService implements
         }
         if (command.accountMode() != null && !command.accountMode().isBlank()) {
             user.changeAccountMode(parseMode(command.accountMode()));
-            userRepository.save(user);
         }
+        maybePromoteAdmin(user);
+        userRepository.save(user);
         return toSession(user);
     }
 
@@ -115,6 +119,7 @@ public class AuthService implements
                 .findById(authToken.userId())
                 .orElseThrow(() -> new AuthException("expired"));
         user.verifyEmail();
+        maybePromoteAdmin(user);
         userRepository.save(user);
         authToken.consume();
         authTokenRepository.save(authToken);
@@ -184,6 +189,15 @@ public class AuthService implements
         String mailType = type == AuthTokenType.RESET ? "reset" : "verify";
         boolean sent = sendAuthMailUseCase.execute(new SendAuthMailCommand(user.email(), mailType, link));
         return new RegisterUserResult(sent, exposeDevLinks || !sent ? link : null);
+    }
+
+    private void maybePromoteAdmin(User user) {
+        if (bootstrapAdminEmail.isBlank() || user.role() == UserRole.ADMIN) {
+            return;
+        }
+        if (user.email().equals(User.normalizeEmail(bootstrapAdminEmail))) {
+            user.promoteToAdmin();
+        }
     }
 
     private AuthSession toSession(User user) {

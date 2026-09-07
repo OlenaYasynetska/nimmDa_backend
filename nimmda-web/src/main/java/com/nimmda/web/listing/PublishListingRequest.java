@@ -7,11 +7,10 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 public record PublishListingRequest(
-        @NotBlank String sellerId,
         @NotBlank String title,
         @NotNull @DecimalMin("0.00") BigDecimal price,
         @NotBlank String category,
-        @NotBlank String location,
-        @NotBlank String imageSrc
+        String location,
+        String imageSrc
 ) {
 }

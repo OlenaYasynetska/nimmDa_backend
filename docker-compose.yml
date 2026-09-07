@@ -53,6 +53,9 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-root}
       MONGODB_URI: mongodb://mongo:27017/${MONGO_DB:-nimmda}
       FRONTEND_BASE_URL: ${FRONTEND_BASE_URL:-http://localhost:4200}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200}
+      JWT_SECRET: ${JWT_SECRET:-nimmda-dev-jwt-secret-change-me-please-32}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
       MAIL_ENABLED: ${MAIL_ENABLED:-false}
       MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
       MAIL_PORT: ${MAIL_PORT:-587}

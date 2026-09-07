@@ -1,0 +1,2 @@
+ALTER TABLE listings
+    MODIFY image_src MEDIUMTEXT NOT NULL;
