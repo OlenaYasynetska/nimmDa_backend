@@ -53,7 +53,7 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-root}
       MONGODB_URI: mongodb://mongo:27017/${MONGO_DB:-nimmda}
       FRONTEND_BASE_URL: ${FRONTEND_BASE_URL:-http://localhost:4200}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,https://www.nimmda.org,https://nimmda.org}
       JWT_SECRET: ${JWT_SECRET:-nimmda-dev-jwt-secret-change-me-please-32}
       BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
       AUTH_EXPOSE_DEV_LINKS: ${AUTH_EXPOSE_DEV_LINKS:-true}
