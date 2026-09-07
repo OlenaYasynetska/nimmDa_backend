@@ -1,6 +1,7 @@
 package com.nimmda.web.auth;
 
 import com.nimmda.application.auth.AuthSession;
+import com.nimmda.application.auth.ConfirmEmailUseCase;
 import com.nimmda.application.auth.LoginUserCommand;
 import com.nimmda.application.auth.LoginUserUseCase;
 import com.nimmda.application.auth.RegisterUserCommand;
@@ -15,9 +16,11 @@ import com.nimmda.application.auth.VerifyEmailUseCase;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,6 +31,7 @@ public class AuthController {
     private final RegisterUserUseCase registerUserUseCase;
     private final LoginUserUseCase loginUserUseCase;
     private final VerifyEmailUseCase verifyEmailUseCase;
+    private final ConfirmEmailUseCase confirmEmailUseCase;
     private final RequestPasswordResetUseCase requestPasswordResetUseCase;
     private final ResetPasswordUseCase resetPasswordUseCase;
     private final ResendVerificationUseCase resendVerificationUseCase;
@@ -37,6 +41,7 @@ public class AuthController {
             RegisterUserUseCase registerUserUseCase,
             LoginUserUseCase loginUserUseCase,
             VerifyEmailUseCase verifyEmailUseCase,
+            ConfirmEmailUseCase confirmEmailUseCase,
             RequestPasswordResetUseCase requestPasswordResetUseCase,
             ResetPasswordUseCase resetPasswordUseCase,
             ResendVerificationUseCase resendVerificationUseCase,
@@ -45,6 +50,7 @@ public class AuthController {
         this.registerUserUseCase = registerUserUseCase;
         this.loginUserUseCase = loginUserUseCase;
         this.verifyEmailUseCase = verifyEmailUseCase;
+        this.confirmEmailUseCase = confirmEmailUseCase;
         this.requestPasswordResetUseCase = requestPasswordResetUseCase;
         this.resetPasswordUseCase = resetPasswordUseCase;
         this.resendVerificationUseCase = resendVerificationUseCase;
@@ -65,6 +71,12 @@ public class AuthController {
         return toResponse(loginUserUseCase.login(
                 new LoginUserCommand(request.email(), request.password(), request.role())
         ));
+    }
+
+    @GetMapping("/verify-email")
+    public VerifyEmailResponse confirmEmail(@RequestParam("token") String token) {
+        confirmEmailUseCase.confirm(token);
+        return new VerifyEmailResponse("E-Mail bestätigt. Du kannst dich jetzt anmelden.", true);
     }
 
     @PostMapping("/verify")

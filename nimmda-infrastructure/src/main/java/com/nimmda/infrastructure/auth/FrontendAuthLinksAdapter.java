@@ -15,7 +15,7 @@ public class FrontendAuthLinksAdapter implements FrontendAuthLinks {
 
     @Override
     public String verifyUrl(String token) {
-        return baseUrl + "/auth/verify?token=" + token;
+        return baseUrl + "/auth/verify-email?token=" + token;
     }
 
     @Override

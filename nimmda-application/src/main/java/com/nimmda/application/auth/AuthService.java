@@ -30,7 +30,8 @@ public class AuthService implements
         RequestPasswordResetUseCase,
         ResetPasswordUseCase,
         ResendVerificationUseCase,
-        UpdateAccountModeUseCase {
+        UpdateAccountModeUseCase,
+        ConfirmEmailUseCase {
 
     private static final Duration VERIFY_TTL = Duration.ofHours(24);
     private static final Duration RESET_TTL = Duration.ofHours(1);
@@ -115,6 +116,16 @@ public class AuthService implements
     @Override
     @Transactional
     public AuthSession verify(String token) {
+        return toSession(markEmailVerified(token));
+    }
+
+    @Override
+    @Transactional
+    public void confirm(String token) {
+        markEmailVerified(token);
+    }
+
+    private User markEmailVerified(String token) {
         AuthToken authToken = authTokenRepository
                 .findUsableByToken(token, AuthTokenType.VERIFY)
                 .orElseThrow(() -> new AuthException("expired"));
@@ -129,7 +140,7 @@ public class AuthService implements
         userRepository.save(user);
         authToken.consume();
         authTokenRepository.save(authToken);
-        return toSession(user);
+        return user;
     }
 
     @Override
