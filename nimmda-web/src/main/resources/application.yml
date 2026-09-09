@@ -59,3 +59,5 @@ app:
     ttl-ms: ${JWT_TTL_MS:86400000}
   auth:
     expose-dev-links: ${AUTH_EXPOSE_DEV_LINKS:false}
+    super-admin-email: ${SUPER_ADMIN_EMAIL:}
+    super-admin-password: ${SUPER_ADMIN_PASSWORD:}

@@ -44,6 +44,8 @@ public class AuthService implements
     private final SendAuthMailUseCase sendAuthMailUseCase;
     private final FrontendAuthLinks frontendAuthLinks;
     private final boolean exposeDevLinks;
+    private final String superAdminEmail;
+    private final String superAdminPassword;
 
     public AuthService(
             UserRepository userRepository,
@@ -52,7 +54,9 @@ public class AuthService implements
             AccessTokenIssuer accessTokenIssuer,
             SendAuthMailUseCase sendAuthMailUseCase,
             FrontendAuthLinks frontendAuthLinks,
-            @Value("${app.auth.expose-dev-links:false}") boolean exposeDevLinks
+            @Value("${app.auth.expose-dev-links:false}") boolean exposeDevLinks,
+            @Value("${app.auth.super-admin-email:}") String superAdminEmail,
+            @Value("${app.auth.super-admin-password:}") String superAdminPassword
     ) {
         this.userRepository = userRepository;
         this.authTokenRepository = authTokenRepository;
@@ -61,6 +65,8 @@ public class AuthService implements
         this.sendAuthMailUseCase = sendAuthMailUseCase;
         this.frontendAuthLinks = frontendAuthLinks;
         this.exposeDevLinks = exposeDevLinks;
+        this.superAdminEmail = superAdminEmail == null ? "" : superAdminEmail.trim();
+        this.superAdminPassword = superAdminPassword == null ? "" : superAdminPassword;
     }
 
     @Override
@@ -68,7 +74,7 @@ public class AuthService implements
     public RegisterUserResult register(RegisterUserCommand command) {
         requirePassword(command.password());
         String email = User.normalizeEmail(command.email());
-        if (CodedAdmin.isEmail(email)) {
+        if (CodedAdmin.isEmail(email, superAdminEmail)) {
             throw new AuthException("exists");
         }
         AccountMode mode = parseMode(command.accountMode());
@@ -92,11 +98,11 @@ public class AuthService implements
     @Transactional(noRollbackFor = AuthException.class)
     public AuthSession login(LoginUserCommand command) {
         String email = User.normalizeEmail(command.email());
-        if (CodedAdmin.isEmail(email)) {
-            if (!CodedAdmin.matches(email, command.password())) {
+        if (CodedAdmin.isEmail(email, superAdminEmail)) {
+            if (!CodedAdmin.matches(email, command.password(), superAdminEmail, superAdminPassword)) {
                 throw new AuthException("invalid");
             }
-            return toSession(User.codedAdmin(parseMode(command.accountMode())));
+            return toSession(User.codedAdmin(parseMode(command.accountMode()), superAdminEmail));
         }
         User user = userRepository.findByEmail(email).orElseThrow(() -> new AuthException("notFound"));
         if (!passwordHasher.matches(command.password(), user.passwordHash())) {
@@ -152,7 +158,7 @@ public class AuthService implements
     @Transactional
     public RegisterUserResult requestReset(String email) {
         String normalized = User.normalizeEmail(email);
-        if (CodedAdmin.isEmail(normalized)) {
+        if (CodedAdmin.isEmail(normalized, superAdminEmail)) {
             return new RegisterUserResult(true, null);
         }
         User user = userRepository.findByEmail(normalized).orElse(null);
@@ -186,7 +192,7 @@ public class AuthService implements
     public RegisterUserResult resend(String email) {
         String normalized = User.normalizeEmail(email);
         User user = userRepository.findByEmail(normalized).orElse(null);
-        if (user == null || user.emailVerified() || CodedAdmin.isEmail(normalized)) {
+        if (user == null || user.emailVerified() || CodedAdmin.isEmail(normalized, superAdminEmail)) {
             return new RegisterUserResult(true, null);
         }
         return issueMail(user, AuthTokenType.VERIFY);
@@ -197,7 +203,7 @@ public class AuthService implements
     public AuthSession updateMode(String userId, String accountMode) {
         AccountMode mode = parseMode(accountMode);
         if (CodedAdmin.isId(userId)) {
-            return toSession(User.codedAdmin(mode));
+            return toSession(User.codedAdmin(mode, superAdminEmail));
         }
         User user = userRepository
                 .findById(new UserId(userId))

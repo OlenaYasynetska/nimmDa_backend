@@ -72,9 +72,4 @@ Listings: [http://localhost:8080/api/listings](http://localhost:8080/api/listing
 | `GET` | `/api/conversations` | MongoDB (JWT) |
 | `POST` | `/api/conversations/{id}/messages` | MongoDB (JWT) |
 
-The Super Admin account is hardcoded (`superadmin@nimmda.local`) and is not stored in MySQL.
-
-```java
-CodedAdmin.EMAIL = "superadmin@nimmda.local"
-CodedAdmin.PASSWORD = "SuperAdmin!ChangeMe"
-```
+The Super Admin login is not stored in MySQL or Git. Set `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD` in Railway Variables (and locally in `.env`).

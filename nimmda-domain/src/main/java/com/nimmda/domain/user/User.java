@@ -65,11 +65,11 @@ public final class User {
         );
     }
 
-    public static User codedAdmin(AccountMode accountMode) {
+    public static User codedAdmin(AccountMode accountMode, String email) {
         Instant now = Instant.now();
         return new User(
                 new UserId(CodedAdmin.ID),
-                CodedAdmin.EMAIL,
+                email,
                 "coded-admin",
                 CodedAdmin.FIRST_NAME,
                 CodedAdmin.LAST_NAME,
