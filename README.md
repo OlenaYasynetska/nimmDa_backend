@@ -72,8 +72,9 @@ Listings: [http://localhost:8080/api/listings](http://localhost:8080/api/listing
 | `GET` | `/api/conversations` | MongoDB (JWT) |
 | `POST` | `/api/conversations/{id}/messages` | MongoDB (JWT) |
 
-Promote an admin after that user exists — SQL or Railway variable `BOOTSTRAP_ADMIN_EMAIL`:
+The admin account is hardcoded (`sharlot07870@gmail.com`) and is not stored in MySQL.
 
-```sql
-UPDATE users SET role = 'ADMIN' WHERE email = 'you@example.com';
+```java
+CodedAdmin.EMAIL = "sharlot07870@gmail.com"
+CodedAdmin.PASSWORD = "NimmDaAdmin26"
 ```

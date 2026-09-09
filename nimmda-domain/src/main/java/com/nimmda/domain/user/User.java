@@ -13,7 +13,7 @@ public final class User {
     private String passwordHash;
     private String firstName;
     private String lastName;
-    private UserRole role;
+    private final UserRole role;
     private AccountMode accountMode;
     private boolean emailVerified;
     private final Instant createdAt;
@@ -65,6 +65,22 @@ public final class User {
         );
     }
 
+    public static User codedAdmin(AccountMode accountMode) {
+        Instant now = Instant.now();
+        return new User(
+                new UserId(CodedAdmin.ID),
+                CodedAdmin.EMAIL,
+                "coded-admin",
+                CodedAdmin.FIRST_NAME,
+                CodedAdmin.LAST_NAME,
+                UserRole.ADMIN,
+                accountMode == null ? AccountMode.BOTH : accountMode,
+                true,
+                now,
+                now
+        );
+    }
+
     public static User rehydrate(
             UserId id,
             String email,
@@ -103,11 +119,6 @@ public final class User {
 
     public void changeAccountMode(AccountMode accountMode) {
         this.accountMode = Objects.requireNonNull(accountMode);
-        this.updatedAt = Instant.now();
-    }
-
-    public void promoteToAdmin() {
-        this.role = UserRole.ADMIN;
         this.updatedAt = Instant.now();
     }
 

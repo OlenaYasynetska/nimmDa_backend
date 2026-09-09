@@ -11,6 +11,7 @@ import com.nimmda.domain.user.AccountMode;
 import com.nimmda.domain.user.AuthToken;
 import com.nimmda.domain.user.AuthTokenRepository;
 import com.nimmda.domain.user.AuthTokenType;
+import com.nimmda.domain.user.CodedAdmin;
 import com.nimmda.domain.user.User;
 import com.nimmda.domain.user.UserRepository;
 import com.nimmda.domain.user.UserRole;
@@ -43,7 +44,6 @@ public class AuthService implements
     private final SendAuthMailUseCase sendAuthMailUseCase;
     private final FrontendAuthLinks frontendAuthLinks;
     private final boolean exposeDevLinks;
-    private final String bootstrapAdminEmail;
 
     public AuthService(
             UserRepository userRepository,
@@ -52,8 +52,7 @@ public class AuthService implements
             AccessTokenIssuer accessTokenIssuer,
             SendAuthMailUseCase sendAuthMailUseCase,
             FrontendAuthLinks frontendAuthLinks,
-            @Value("${app.auth.expose-dev-links:false}") boolean exposeDevLinks,
-            @Value("${app.auth.bootstrap-admin-email:}") String bootstrapAdminEmail
+            @Value("${app.auth.expose-dev-links:false}") boolean exposeDevLinks
     ) {
         this.userRepository = userRepository;
         this.authTokenRepository = authTokenRepository;
@@ -62,7 +61,6 @@ public class AuthService implements
         this.sendAuthMailUseCase = sendAuthMailUseCase;
         this.frontendAuthLinks = frontendAuthLinks;
         this.exposeDevLinks = exposeDevLinks;
-        this.bootstrapAdminEmail = bootstrapAdminEmail == null ? "" : bootstrapAdminEmail.trim();
     }
 
     @Override
@@ -70,6 +68,9 @@ public class AuthService implements
     public RegisterUserResult register(RegisterUserCommand command) {
         requirePassword(command.password());
         String email = User.normalizeEmail(command.email());
+        if (CodedAdmin.isEmail(email)) {
+            throw new AuthException("exists");
+        }
         AccountMode mode = parseMode(command.accountMode());
         User user = userRepository.findByEmail(email).orElse(null);
         if (user != null && user.emailVerified()) {
@@ -91,6 +92,12 @@ public class AuthService implements
     @Transactional(noRollbackFor = AuthException.class)
     public AuthSession login(LoginUserCommand command) {
         String email = User.normalizeEmail(command.email());
+        if (CodedAdmin.isEmail(email)) {
+            if (!CodedAdmin.matches(email, command.password())) {
+                throw new AuthException("invalid");
+            }
+            return toSession(User.codedAdmin(parseMode(command.accountMode())));
+        }
         User user = userRepository.findByEmail(email).orElseThrow(() -> new AuthException("notFound"));
         if (!passwordHasher.matches(command.password(), user.passwordHash())) {
             throw new AuthException("invalid");
@@ -108,7 +115,6 @@ public class AuthService implements
         if (command.accountMode() != null && !command.accountMode().isBlank()) {
             user.changeAccountMode(parseMode(command.accountMode()));
         }
-        maybePromoteAdmin(user);
         userRepository.save(user);
         return toSession(user);
     }
@@ -136,7 +142,6 @@ public class AuthService implements
                 .findById(authToken.userId())
                 .orElseThrow(() -> new AuthException("expired"));
         user.verifyEmail();
-        maybePromoteAdmin(user);
         userRepository.save(user);
         authToken.consume();
         authTokenRepository.save(authToken);
@@ -147,6 +152,9 @@ public class AuthService implements
     @Transactional
     public RegisterUserResult requestReset(String email) {
         String normalized = User.normalizeEmail(email);
+        if (CodedAdmin.isEmail(normalized)) {
+            return new RegisterUserResult(true, null);
+        }
         User user = userRepository.findByEmail(normalized).orElse(null);
         if (user == null) {
             return new RegisterUserResult(true, null);
@@ -178,7 +186,7 @@ public class AuthService implements
     public RegisterUserResult resend(String email) {
         String normalized = User.normalizeEmail(email);
         User user = userRepository.findByEmail(normalized).orElse(null);
-        if (user == null || user.emailVerified()) {
+        if (user == null || user.emailVerified() || CodedAdmin.isEmail(normalized)) {
             return new RegisterUserResult(true, null);
         }
         return issueMail(user, AuthTokenType.VERIFY);
@@ -187,10 +195,14 @@ public class AuthService implements
     @Override
     @Transactional
     public AuthSession updateMode(String userId, String accountMode) {
+        AccountMode mode = parseMode(accountMode);
+        if (CodedAdmin.isId(userId)) {
+            return toSession(User.codedAdmin(mode));
+        }
         User user = userRepository
                 .findById(new UserId(userId))
                 .orElseThrow(() -> new AuthException("notFound"));
-        user.changeAccountMode(parseMode(accountMode));
+        user.changeAccountMode(mode);
         userRepository.save(user);
         return toSession(user);
     }
@@ -209,15 +221,6 @@ public class AuthService implements
             throw new AuthException("mailFailed");
         }
         return new RegisterUserResult(sent, exposeDevLinks ? link : null);
-    }
-
-    private void maybePromoteAdmin(User user) {
-        if (bootstrapAdminEmail.isBlank() || user.role() == UserRole.ADMIN) {
-            return;
-        }
-        if (user.email().equals(User.normalizeEmail(bootstrapAdminEmail))) {
-            user.promoteToAdmin();
-        }
     }
 
     private AuthSession toSession(User user) {
