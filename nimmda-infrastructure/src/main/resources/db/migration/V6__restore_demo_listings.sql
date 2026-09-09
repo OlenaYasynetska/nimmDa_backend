@@ -1,0 +1,25 @@
+INSERT IGNORE INTO listings (
+    id, seller_id, title, price, category, location, image_src, status, views, chats, created_at, updated_at
+) VALUES
+('pub-1', 'demo-seller', 'IKEA Söderhamn 3-Sitzer Sofa', 450.00, 'Möbel & Haushalt', 'Linz', '/assets/images/Furniture.png', 'ACTIVE', 186, 4, '2026-08-01 10:00:00', '2026-08-01 10:00:00'),
+('pub-2', 'demo-seller', 'Esstisch Eiche massiv', 120.00, 'Möbel & Haushalt', 'Wels', '/assets/images/Furniture.png', 'ACTIVE', 67, 3, '2026-08-02 10:00:00', '2026-08-02 10:00:00'),
+('pub-3', 'demo-seller', 'Monitor 27 Zoll', 90.00, 'Elektronik', 'Linz', '/assets/images/Services.png', 'ACTIVE', 41, 1, '2026-08-03 10:00:00', '2026-08-03 10:00:00'),
+('pub-4', 'demo-seller', 'Laptop gebraucht', 280.00, 'Elektronik', 'Steyr', '/assets/images/Services.png', 'ACTIVE', 88, 2, '2026-08-04 10:00:00', '2026-08-04 10:00:00'),
+('pub-5', 'demo-seller', 'Winterjacke Größe M', 25.00, 'Kleidung & Schuhe', 'Linz', '/assets/images/Free.png', 'ACTIVE', 19, 0, '2026-08-05 10:00:00', '2026-08-05 10:00:00'),
+('pub-6', 'demo-seller', 'Sneaker 42', 35.00, 'Kleidung & Schuhe', 'Leonding', '/assets/images/Free.png', 'ACTIVE', 22, 0, '2026-08-06 10:00:00', '2026-08-06 10:00:00'),
+('pub-7', 'demo-seller', 'Autoreifen Sommer 4 Stück', 160.00, 'Auto & Zubehör', 'Wels', '/assets/images/Services.png', 'ACTIVE', 30, 1, '2026-08-07 10:00:00', '2026-08-07 10:00:00'),
+('pub-8', 'demo-seller', 'Fahrradträger fürs Auto', 70.00, 'Auto & Zubehör', 'Linz', '/assets/images/Services.png', 'ACTIVE', 14, 0, '2026-08-08 10:00:00', '2026-08-08 10:00:00'),
+('pub-9', 'demo-seller', 'Gartentisch mit Bänken', 80.00, 'Haus & Garten', 'Traun', '/assets/images/Furniture.png', 'ACTIVE', 27, 1, '2026-08-09 10:00:00', '2026-08-09 10:00:00'),
+('pub-10', 'demo-seller', 'Rasenmäher', 95.00, 'Haus & Garten', 'Linz', '/assets/images/Services.png', 'ACTIVE', 33, 0, '2026-08-10 10:00:00', '2026-08-10 10:00:00'),
+('pub-11', 'demo-seller', 'Zimmer in Linz, 18 m²', 420.00, 'Immobilien', 'Linz', '/assets/images/Furniture.png', 'ACTIVE', 54, 2, '2026-08-11 10:00:00', '2026-08-11 10:00:00'),
+('pub-12', 'demo-seller', 'Garage Stellplatz', 60.00, 'Immobilien', 'Wels', '/assets/images/Services.png', 'ACTIVE', 18, 0, '2026-08-12 10:00:00', '2026-08-12 10:00:00'),
+('pub-13', 'demo-seller', 'Schreibtisch mit Rollcontainer', 55.00, 'Arbeitswelt & Business', 'Linz', '/assets/images/Furniture.png', 'ACTIVE', 21, 0, '2026-08-13 10:00:00', '2026-08-13 10:00:00'),
+('pub-14', 'demo-seller', 'Bürostuhl ergonomisch', 40.00, 'Arbeitswelt & Business', 'Steyr', '/assets/images/Furniture.png', 'ACTIVE', 16, 0, '2026-08-14 10:00:00', '2026-08-14 10:00:00'),
+('pub-15', 'demo-seller', 'Hundebett + Näpfe', 15.00, 'Tiere & Zubehör', 'Linz', '/assets/images/Free.png', 'ACTIVE', 11, 0, '2026-08-15 10:00:00', '2026-08-15 10:00:00'),
+('pub-16', 'demo-seller', 'Katzenkratzbaum', 30.00, 'Tiere & Zubehör', 'Leonding', '/assets/images/Free.png', 'ACTIVE', 13, 0, '2026-08-16 10:00:00', '2026-08-16 10:00:00'),
+('pub-17', 'demo-seller', 'Bosch Akkuschrauber Set', 75.00, 'Bau & Renovierung', 'Linz', '/assets/images/Services.png', 'ACTIVE', 92, 2, '2026-08-17 10:00:00', '2026-08-17 10:00:00'),
+('pub-18', 'demo-seller', 'Leiter 6 Stufen', 20.00, 'Bau & Renovierung', 'Wels', '/assets/images/Services.png', 'ACTIVE', 9, 0, '2026-08-18 10:00:00', '2026-08-18 10:00:00'),
+('pub-19', 'demo-seller', 'Kinderfahrrad 16 Zoll', 40.00, 'Freizeit & Hobby', 'Linz', '/assets/images/Free.png', 'ACTIVE', 54, 1, '2026-08-19 10:00:00', '2026-08-19 10:00:00'),
+('pub-20', 'demo-seller', 'Wanderstöcke', 12.00, 'Freizeit & Hobby', 'Steyr', '/assets/images/Services.png', 'ACTIVE', 7, 0, '2026-08-20 10:00:00', '2026-08-20 10:00:00'),
+('pub-21', 'demo-seller', 'Kinderwagen', 90.00, 'Baby & Kind', 'Linz', '/assets/images/Free.png', 'ACTIVE', 28, 1, '2026-08-21 10:00:00', '2026-08-21 10:00:00'),
+('pub-22', 'demo-seller', 'Babywanne + Zubehör', 25.00, 'Baby & Kind', 'Traun', '/assets/images/Free.png', 'ACTIVE', 31, 0, '2026-08-22 10:00:00', '2026-08-22 10:00:00');
