@@ -72,9 +72,9 @@ Listings: [http://localhost:8080/api/listings](http://localhost:8080/api/listing
 | `GET` | `/api/conversations` | MongoDB (JWT) |
 | `POST` | `/api/conversations/{id}/messages` | MongoDB (JWT) |
 
-The admin account is hardcoded (`sharlot07870@gmail.com`) and is not stored in MySQL.
+The Super Admin account is hardcoded (`superadmin@nimmda.local`) and is not stored in MySQL.
 
 ```java
-CodedAdmin.EMAIL = "sharlot07870@gmail.com"
-CodedAdmin.PASSWORD = "NimmDaAdmin26"
+CodedAdmin.EMAIL = "superadmin@nimmda.local"
+CodedAdmin.PASSWORD = "SuperAdmin!ChangeMe"
 ```

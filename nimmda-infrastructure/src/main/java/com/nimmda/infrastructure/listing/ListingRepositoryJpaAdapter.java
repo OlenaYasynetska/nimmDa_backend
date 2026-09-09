@@ -55,6 +55,11 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
                 .toList();
     }
 
+    @Override
+    public List<Listing> findAll() {
+        return jpaRepository.findAll().stream().map(this::toDomain).toList();
+    }
+
     private ListingJpaEntity toEntity(Listing listing) {
         ListingJpaEntity entity = new ListingJpaEntity();
         entity.setId(listing.id().value());

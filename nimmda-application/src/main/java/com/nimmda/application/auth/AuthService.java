@@ -239,9 +239,9 @@ public class AuthService implements
 
     private static String frontendRole(User user) {
         if (user.role() == UserRole.ADMIN) {
-            return "both";
+            return "admin";
         }
-        return "both";
+        return user.accountMode().name().toLowerCase(Locale.ROOT);
     }
 
     private static AccountMode parseMode(String raw) {

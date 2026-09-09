@@ -16,4 +16,6 @@ public interface ListingRepository {
     List<Listing> findPublishedByCategory(Category category);
 
     List<Listing> findBySellerId(UserId sellerId);
+
+    List<Listing> findAll();
 }

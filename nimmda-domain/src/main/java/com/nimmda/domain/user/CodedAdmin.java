@@ -7,10 +7,10 @@ import java.util.Locale;
 public final class CodedAdmin {
 
     public static final String ID = "nimmda-admin";
-    public static final String EMAIL = "sharlot07870@gmail.com";
-    public static final String PASSWORD = "NimmDaAdmin26";
-    public static final String FIRST_NAME = "Admin";
-    public static final String LAST_NAME = "NimmDa";
+    public static final String EMAIL = "superadmin@nimmda.local";
+    public static final String PASSWORD = "SuperAdmin!ChangeMe";
+    public static final String FIRST_NAME = "Super";
+    public static final String LAST_NAME = "Admin";
 
     private CodedAdmin() {
     }

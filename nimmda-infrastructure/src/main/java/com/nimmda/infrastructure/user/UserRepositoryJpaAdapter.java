@@ -7,6 +7,7 @@ import com.nimmda.domain.user.UserRepository;
 import com.nimmda.domain.user.UserRole;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -31,6 +32,11 @@ public class UserRepositoryJpaAdapter implements UserRepository {
     @Override
     public Optional<User> findByEmail(String email) {
         return jpaRepository.findByEmail(email).map(this::toDomain);
+    }
+
+    @Override
+    public List<User> findAll() {
+        return jpaRepository.findAll().stream().map(this::toDomain).toList();
     }
 
     private UserJpaEntity toEntity(User user) {

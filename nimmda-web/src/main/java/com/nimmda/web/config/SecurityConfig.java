@@ -66,6 +66,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/listings/*").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/listings/*/inquiries").authenticated()
                         .requestMatchers("/api/conversations", "/api/conversations/**").authenticated()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
