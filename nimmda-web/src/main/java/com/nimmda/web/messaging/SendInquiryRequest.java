@@ -1,6 +1,4 @@
 package com.nimmda.web.messaging;
 
-import jakarta.validation.constraints.NotBlank;
-
-public record SendInquiryRequest(@NotBlank String message) {
+public record SendInquiryRequest(String message) {
 }

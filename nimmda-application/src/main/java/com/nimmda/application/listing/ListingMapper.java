@@ -2,12 +2,12 @@ package com.nimmda.application.listing;
 
 import com.nimmda.domain.listing.Listing;
 
-final class ListingMapper {
+public final class ListingMapper {
 
     private ListingMapper() {
     }
 
-    static ListingView toView(Listing listing) {
+    public static ListingView toView(Listing listing) {
         return new ListingView(
                 listing.id().value(),
                 listing.sellerId().value(),

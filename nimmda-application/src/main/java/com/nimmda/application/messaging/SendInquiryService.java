@@ -53,23 +53,35 @@ public class SendInquiryService implements SendInquiryUseCase {
 
         Conversation conversation = conversationRepository
                 .findByListingAndBuyer(listing.id(), buyerId)
-                .map(existing -> {
-                    existing.addBuyerMessage(command.message());
-                    return existing;
-                })
-                .orElseGet(() -> Conversation.start(
-                        listing.id(),
-                        listing.sellerId(),
-                        buyerId,
-                        ConversationViewAssembler.displayName(buyer),
-                        ConversationViewAssembler.displayName(seller),
-                        listing.title(),
-                        command.message()
-                ));
+                .orElse(null);
+        if (conversation != null) {
+            if (hasText(command.message())) {
+                conversation.addBuyerMessage(command.message());
+                conversation = conversationRepository.save(conversation);
+            }
+            return views.toView(conversation, command.buyerId());
+        }
 
-        Conversation saved = conversationRepository.save(conversation);
+        String firstMessage = hasText(command.message())
+                ? command.message().trim()
+                : "Hallo, ist das noch verfügbar?";
+        Conversation started = Conversation.start(
+                listing.id(),
+                listing.sellerId(),
+                buyerId,
+                ConversationViewAssembler.displayName(buyer),
+                ConversationViewAssembler.displayName(seller),
+                listing.title(),
+                firstMessage
+        );
+
+        Conversation saved = conversationRepository.save(started);
         listing.recordChat();
         listingRepository.save(listing);
         return views.toView(saved, command.buyerId());
+    }
+
+    private static boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 }

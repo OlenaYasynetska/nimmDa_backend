@@ -6,14 +6,12 @@ import com.nimmda.application.messaging.ReplyToConversationUseCase;
 import com.nimmda.application.messaging.SendInquiryCommand;
 import com.nimmda.application.messaging.SendInquiryUseCase;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -37,16 +35,16 @@ public class ConversationController {
     }
 
     @PostMapping("/listings/{listingId}/inquiries")
-    @ResponseStatus(HttpStatus.CREATED)
     public ConversationView sendInquiry(
             Authentication authentication,
             @PathVariable String listingId,
-            @Valid @RequestBody SendInquiryRequest request
+            @RequestBody(required = false) SendInquiryRequest request
     ) {
+        String message = request == null ? null : request.message();
         return sendInquiryUseCase.execute(new SendInquiryCommand(
                 listingId,
                 authentication.getName(),
-                request.message()
+                message
         ));
     }
 
