@@ -15,6 +15,7 @@ public final class Conversation {
     private final UserId sellerId;
     private final UserId buyerId;
     private final String buyerName;
+    private final String sellerName;
     private final String listingTitle;
     private final List<Message> messages;
     private final Instant createdAt;
@@ -26,6 +27,7 @@ public final class Conversation {
             UserId sellerId,
             UserId buyerId,
             String buyerName,
+            String sellerName,
             String listingTitle,
             List<Message> messages,
             Instant createdAt,
@@ -35,7 +37,8 @@ public final class Conversation {
         this.listingId = Objects.requireNonNull(listingId);
         this.sellerId = Objects.requireNonNull(sellerId);
         this.buyerId = Objects.requireNonNull(buyerId);
-        this.buyerName = requireName(buyerName);
+        this.buyerName = requireName(buyerName, "buyerName");
+        this.sellerName = sellerName == null ? "" : sellerName.trim();
         this.listingTitle = requireTitle(listingTitle);
         this.messages = new ArrayList<>(Objects.requireNonNull(messages));
         this.createdAt = Objects.requireNonNull(createdAt);
@@ -50,6 +53,7 @@ public final class Conversation {
             UserId sellerId,
             UserId buyerId,
             String buyerName,
+            String sellerName,
             String listingTitle,
             String firstMessage
     ) {
@@ -60,6 +64,7 @@ public final class Conversation {
                 sellerId,
                 buyerId,
                 buyerName,
+                sellerName,
                 listingTitle,
                 List.of(Message.fromBuyer(firstMessage)),
                 now,
@@ -73,6 +78,7 @@ public final class Conversation {
             UserId sellerId,
             UserId buyerId,
             String buyerName,
+            String sellerName,
             String listingTitle,
             List<Message> messages,
             Instant createdAt,
@@ -84,6 +90,7 @@ public final class Conversation {
                 sellerId,
                 buyerId,
                 buyerName,
+                sellerName,
                 listingTitle,
                 messages,
                 createdAt,
@@ -125,6 +132,10 @@ public final class Conversation {
         return buyerName;
     }
 
+    public String sellerName() {
+        return sellerName;
+    }
+
     public String listingTitle() {
         return listingTitle;
     }
@@ -141,11 +152,22 @@ public final class Conversation {
         return updatedAt;
     }
 
-    private static String requireName(String name) {
-        Objects.requireNonNull(name, "buyerName must not be null");
+    public String otherPartyName(UserId viewerId) {
+        if (sellerId.equals(viewerId)) {
+            return buyerName;
+        }
+        return sellerName.isBlank() ? "Mitglied" : sellerName;
+    }
+
+    public boolean sellerIs(UserId viewerId) {
+        return sellerId.equals(viewerId);
+    }
+
+    private static String requireName(String name, String field) {
+        Objects.requireNonNull(name, field + " must not be null");
         String normalized = name.trim();
         if (normalized.isBlank()) {
-            throw new IllegalArgumentException("buyerName must not be blank");
+            throw new IllegalArgumentException(field + " must not be blank");
         }
         return normalized;
     }

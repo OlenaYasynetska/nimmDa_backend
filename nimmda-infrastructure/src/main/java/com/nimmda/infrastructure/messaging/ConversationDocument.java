@@ -18,6 +18,7 @@ public class ConversationDocument {
     private String sellerId;
     private String buyerId;
     private String buyerName;
+    private String sellerName;
     private String listingTitle;
     private List<MessageDocument> messages = new ArrayList<>();
     private Instant createdAt;
@@ -61,6 +62,14 @@ public class ConversationDocument {
 
     public void setBuyerName(String buyerName) {
         this.buyerName = buyerName;
+    }
+
+    public String getSellerName() {
+        return sellerName;
+    }
+
+    public void setSellerName(String sellerName) {
+        this.sellerName = sellerName;
     }
 
     public String getListingTitle() {

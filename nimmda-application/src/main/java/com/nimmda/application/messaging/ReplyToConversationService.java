@@ -12,9 +12,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReplyToConversationService implements ReplyToConversationUseCase {
 
     private final ConversationRepository conversationRepository;
+    private final ConversationViewAssembler views;
 
-    public ReplyToConversationService(ConversationRepository conversationRepository) {
+    public ReplyToConversationService(
+            ConversationRepository conversationRepository,
+            ConversationViewAssembler views
+    ) {
         this.conversationRepository = conversationRepository;
+        this.views = views;
     }
 
     @Override
@@ -31,6 +36,6 @@ public class ReplyToConversationService implements ReplyToConversationUseCase {
         } else {
             throw new ForbiddenActionException("Not a participant");
         }
-        return ConversationMapper.toView(conversationRepository.save(conversation));
+        return views.toView(conversationRepository.save(conversation), userId);
     }
 }

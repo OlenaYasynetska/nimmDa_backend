@@ -20,15 +20,18 @@ public class SendInquiryService implements SendInquiryUseCase {
     private final ListingRepository listingRepository;
     private final ConversationRepository conversationRepository;
     private final UserRepository userRepository;
+    private final ConversationViewAssembler views;
 
     public SendInquiryService(
             ListingRepository listingRepository,
             ConversationRepository conversationRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            ConversationViewAssembler views
     ) {
         this.listingRepository = listingRepository;
         this.conversationRepository = conversationRepository;
         this.userRepository = userRepository;
+        this.views = views;
     }
 
     @Override
@@ -46,7 +49,7 @@ public class SendInquiryService implements SendInquiryUseCase {
             throw new ForbiddenActionException("Cannot inquire own listing");
         }
         User buyer = userRepository.findById(buyerId).orElseThrow(() -> new AuthException("notFound"));
-        String buyerName = displayName(buyer);
+        User seller = userRepository.findById(listing.sellerId()).orElseThrow(() -> new AuthException("notFound"));
 
         Conversation conversation = conversationRepository
                 .findByListingAndBuyer(listing.id(), buyerId)
@@ -58,7 +61,8 @@ public class SendInquiryService implements SendInquiryUseCase {
                         listing.id(),
                         listing.sellerId(),
                         buyerId,
-                        buyerName,
+                        ConversationViewAssembler.displayName(buyer),
+                        ConversationViewAssembler.displayName(seller),
                         listing.title(),
                         command.message()
                 ));
@@ -66,14 +70,6 @@ public class SendInquiryService implements SendInquiryUseCase {
         Conversation saved = conversationRepository.save(conversation);
         listing.recordChat();
         listingRepository.save(listing);
-        return ConversationMapper.toView(saved);
-    }
-
-    private static String displayName(User user) {
-        String last = user.lastName();
-        if (last.isBlank()) {
-            return user.firstName();
-        }
-        return user.firstName() + " " + last.charAt(0) + ".";
+        return views.toView(saved, command.buyerId());
     }
 }

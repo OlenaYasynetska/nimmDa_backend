@@ -6,9 +6,7 @@ import java.util.List;
 public record ConversationView(
         String id,
         String listingId,
-        String sellerId,
-        String buyerId,
-        String buyerName,
+        String participant,
         String listingTitle,
         String preview,
         Instant updatedAt,

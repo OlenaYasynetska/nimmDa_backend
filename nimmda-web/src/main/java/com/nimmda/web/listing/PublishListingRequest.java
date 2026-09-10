@@ -10,7 +10,7 @@ public record PublishListingRequest(
         @NotBlank String title,
         @NotNull @DecimalMin("0.00") BigDecimal price,
         @NotBlank String category,
-        String location,
+        @NotBlank String location,
         String imageSrc
 ) {
 }

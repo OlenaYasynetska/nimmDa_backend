@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PublishListingService implements PublishListingUseCase {
 
-    private static final String DEFAULT_LOCATION = "Linz";
     private static final String DEFAULT_IMAGE = "/assets/images/Furniture.png";
 
     private final ListingRepository listingRepository;
@@ -29,10 +28,17 @@ public class PublishListingService implements PublishListingUseCase {
                 command.title(),
                 Money.of(command.price()),
                 new Category(command.category()),
-                new Location(blankToDefault(command.location(), DEFAULT_LOCATION)),
+                new Location(requireLocation(command.location())),
                 blankToDefault(command.imageSrc(), DEFAULT_IMAGE)
         );
         return ListingMapper.toView(listingRepository.save(listing));
+    }
+
+    private static String requireLocation(String value) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("location must not be blank");
+        }
+        return value.trim();
     }
 
     private static String blankToDefault(String value, String fallback) {

@@ -51,7 +51,7 @@ public class ConversationController {
     }
 
     @GetMapping("/conversations")
-    public List<ConversationView> listForSeller(Authentication authentication) {
+    public List<ConversationView> list(Authentication authentication) {
         return listSellerConversationsUseCase.execute(authentication.getName());
     }
 

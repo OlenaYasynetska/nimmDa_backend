@@ -15,9 +15,14 @@ import java.util.Map;
 public class ListSellerConversationsService implements ListSellerConversationsUseCase {
 
     private final ConversationRepository conversationRepository;
+    private final ConversationViewAssembler views;
 
-    public ListSellerConversationsService(ConversationRepository conversationRepository) {
+    public ListSellerConversationsService(
+            ConversationRepository conversationRepository,
+            ConversationViewAssembler views
+    ) {
         this.conversationRepository = conversationRepository;
+        this.views = views;
     }
 
     @Override
@@ -33,7 +38,7 @@ public class ListSellerConversationsService implements ListSellerConversationsUs
         }
         return unique.values().stream()
                 .sorted(Comparator.comparing(Conversation::updatedAt).reversed())
-                .map(ConversationMapper::toView)
+                .map(conversation -> views.toView(conversation, userId))
                 .toList();
     }
 }

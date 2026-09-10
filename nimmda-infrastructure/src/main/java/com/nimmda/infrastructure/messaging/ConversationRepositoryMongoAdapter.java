@@ -59,6 +59,7 @@ public class ConversationRepositoryMongoAdapter implements ConversationRepositor
         document.setSellerId(conversation.sellerId().value());
         document.setBuyerId(conversation.buyerId().value());
         document.setBuyerName(conversation.buyerName());
+        document.setSellerName(conversation.sellerName());
         document.setListingTitle(conversation.listingTitle());
         document.setMessages(conversation.messages().stream()
                 .map(message -> new MessageDocument(
@@ -86,6 +87,7 @@ public class ConversationRepositoryMongoAdapter implements ConversationRepositor
                 new UserId(document.getSellerId()),
                 new UserId(document.getBuyerId()),
                 document.getBuyerName(),
+                document.getSellerName() == null ? "" : document.getSellerName(),
                 document.getListingTitle(),
                 messages,
                 document.getCreatedAt(),
