@@ -11,11 +11,9 @@ import com.nimmda.application.auth.RequestPasswordResetUseCase;
 import com.nimmda.application.auth.ResendVerificationUseCase;
 import com.nimmda.application.auth.ResetPasswordCommand;
 import com.nimmda.application.auth.ResetPasswordUseCase;
-import com.nimmda.application.auth.UpdateAccountModeUseCase;
 import com.nimmda.application.auth.VerifyEmailUseCase;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -35,7 +33,6 @@ public class AuthController {
     private final RequestPasswordResetUseCase requestPasswordResetUseCase;
     private final ResetPasswordUseCase resetPasswordUseCase;
     private final ResendVerificationUseCase resendVerificationUseCase;
-    private final UpdateAccountModeUseCase updateAccountModeUseCase;
 
     public AuthController(
             RegisterUserUseCase registerUserUseCase,
@@ -44,8 +41,7 @@ public class AuthController {
             ConfirmEmailUseCase confirmEmailUseCase,
             RequestPasswordResetUseCase requestPasswordResetUseCase,
             ResetPasswordUseCase resetPasswordUseCase,
-            ResendVerificationUseCase resendVerificationUseCase,
-            UpdateAccountModeUseCase updateAccountModeUseCase
+            ResendVerificationUseCase resendVerificationUseCase
     ) {
         this.registerUserUseCase = registerUserUseCase;
         this.loginUserUseCase = loginUserUseCase;
@@ -54,14 +50,13 @@ public class AuthController {
         this.requestPasswordResetUseCase = requestPasswordResetUseCase;
         this.resetPasswordUseCase = resetPasswordUseCase;
         this.resendVerificationUseCase = resendVerificationUseCase;
-        this.updateAccountModeUseCase = updateAccountModeUseCase;
     }
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public RegisterResponse register(@Valid @RequestBody RegisterRequest request) {
         RegisterUserResult result = registerUserUseCase.register(
-                new RegisterUserCommand(request.email(), request.password(), request.role())
+                new RegisterUserCommand(request.email(), request.password())
         );
         return new RegisterResponse(result.mailSent(), result.verifyUrl());
     }
@@ -69,7 +64,7 @@ public class AuthController {
     @PostMapping("/login")
     public AuthSessionResponse login(@Valid @RequestBody LoginRequest request) {
         return toResponse(loginUserUseCase.login(
-                new LoginUserCommand(request.email(), request.password(), request.role())
+                new LoginUserCommand(request.email(), request.password())
         ));
     }
 
@@ -100,14 +95,6 @@ public class AuthController {
     public RegisterResponse resend(@Valid @RequestBody EmailRequest request) {
         RegisterUserResult result = resendVerificationUseCase.resend(request.email());
         return new RegisterResponse(result.mailSent(), result.verifyUrl());
-    }
-
-    @PostMapping("/account-mode")
-    public AuthSessionResponse accountMode(
-            Authentication authentication,
-            @Valid @RequestBody AccountModeRequest request
-    ) {
-        return toResponse(updateAccountModeUseCase.updateMode(authentication.getName(), request.role()));
     }
 
     private static AuthSessionResponse toResponse(AuthSession session) {

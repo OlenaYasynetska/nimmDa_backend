@@ -6,8 +6,6 @@ import com.nimmda.application.port.auth.FrontendAuthLinks;
 import com.nimmda.application.port.security.AccessTokenIssuer;
 import com.nimmda.application.port.security.IssuedAccessToken;
 import com.nimmda.application.port.security.PasswordHasher;
-import com.nimmda.domain.shared.UserId;
-import com.nimmda.domain.user.AccountMode;
 import com.nimmda.domain.user.AuthToken;
 import com.nimmda.domain.user.AuthTokenRepository;
 import com.nimmda.domain.user.AuthTokenType;
@@ -31,7 +29,6 @@ public class AuthService implements
         RequestPasswordResetUseCase,
         ResetPasswordUseCase,
         ResendVerificationUseCase,
-        UpdateAccountModeUseCase,
         ConfirmEmailUseCase {
 
     private static final Duration VERIFY_TTL = Duration.ofHours(24);
@@ -77,7 +74,6 @@ public class AuthService implements
         if (CodedAdmin.isEmail(email, superAdminEmail)) {
             throw new AuthException("exists");
         }
-        AccountMode mode = parseMode(command.accountMode());
         User user = userRepository.findByEmail(email).orElse(null);
         if (user != null && user.emailVerified()) {
             throw new AuthException("exists");
@@ -85,10 +81,9 @@ public class AuthService implements
         String hash = passwordHasher.hash(command.password());
         if (user == null) {
             NameParts names = namesFromEmail(email);
-            user = User.register(email, hash, names.firstName(), names.lastName(), mode);
+            user = User.register(email, hash, names.firstName(), names.lastName());
         } else {
             user.replacePassword(hash);
-            user.changeAccountMode(mode);
         }
         userRepository.save(user);
         return issueMail(user, AuthTokenType.VERIFY);
@@ -102,7 +97,7 @@ public class AuthService implements
             if (!CodedAdmin.matches(email, command.password(), superAdminEmail, superAdminPassword)) {
                 throw new AuthException("invalid");
             }
-            return toSession(User.codedAdmin(parseMode(command.accountMode()), superAdminEmail));
+            return toSession(User.codedAdmin(superAdminEmail));
         }
         User user = userRepository.findByEmail(email).orElseThrow(() -> new AuthException("notFound"));
         if (!passwordHasher.matches(command.password(), user.passwordHash())) {
@@ -118,10 +113,6 @@ public class AuthService implements
             }
             throw new AuthException("unverified");
         }
-        if (command.accountMode() != null && !command.accountMode().isBlank()) {
-            user.changeAccountMode(parseMode(command.accountMode()));
-        }
-        userRepository.save(user);
         return toSession(user);
     }
 
@@ -198,21 +189,6 @@ public class AuthService implements
         return issueMail(user, AuthTokenType.VERIFY);
     }
 
-    @Override
-    @Transactional
-    public AuthSession updateMode(String userId, String accountMode) {
-        AccountMode mode = parseMode(accountMode);
-        if (CodedAdmin.isId(userId)) {
-            return toSession(User.codedAdmin(mode, superAdminEmail));
-        }
-        User user = userRepository
-                .findById(new UserId(userId))
-                .orElseThrow(() -> new AuthException("notFound"));
-        user.changeAccountMode(mode);
-        userRepository.save(user);
-        return toSession(user);
-    }
-
     private RegisterUserResult issueMail(User user, AuthTokenType type) {
         authTokenRepository.deleteOpenTokens(user.id().value(), type);
         Duration ttl = type == AuthTokenType.RESET ? RESET_TTL : VERIFY_TTL;
@@ -244,22 +220,7 @@ public class AuthService implements
     }
 
     private static String frontendRole(User user) {
-        if (user.role() == UserRole.ADMIN) {
-            return "admin";
-        }
-        return user.accountMode().name().toLowerCase(Locale.ROOT);
-    }
-
-    private static AccountMode parseMode(String raw) {
-        if (raw == null || raw.isBlank()) {
-            return AccountMode.BOTH;
-        }
-        return switch (raw.trim().toLowerCase(Locale.ROOT)) {
-            case "buyer" -> AccountMode.BUYER;
-            case "seller" -> AccountMode.SELLER;
-            case "both" -> AccountMode.BOTH;
-            default -> AccountMode.BOTH;
-        };
+        return user.role() == UserRole.ADMIN ? "admin" : "user";
     }
 
     private static void requirePassword(String password) {

@@ -61,7 +61,6 @@ Listings: [http://localhost:8080/api/listings](http://localhost:8080/api/listing
 | `POST` | `/api/auth/forgot-password` | MySQL + mail |
 | `POST` | `/api/auth/reset-password` | MySQL |
 | `POST` | `/api/auth/resend-verification` | MySQL + mail |
-| `POST` | `/api/auth/account-mode` | MySQL (JWT) |
 | `POST` | `/api/auth/mail` | Resend |
 | `GET` | `/api/listings` | MySQL |
 | `GET` | `/api/listings/mine` | MySQL (JWT) |

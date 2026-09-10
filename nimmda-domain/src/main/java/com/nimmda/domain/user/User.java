@@ -14,7 +14,7 @@ public final class User {
     private String firstName;
     private String lastName;
     private final UserRole role;
-    private AccountMode accountMode;
+    private final AccountMode accountMode;
     private boolean emailVerified;
     private final Instant createdAt;
     private Instant updatedAt;
@@ -47,8 +47,7 @@ public final class User {
             String email,
             String passwordHash,
             String firstName,
-            String lastName,
-            AccountMode accountMode
+            String lastName
     ) {
         Instant now = Instant.now();
         return new User(
@@ -58,14 +57,14 @@ public final class User {
                 firstName,
                 lastName,
                 UserRole.USER,
-                accountMode,
+                AccountMode.BOTH,
                 false,
                 now,
                 now
         );
     }
 
-    public static User codedAdmin(AccountMode accountMode, String email) {
+    public static User codedAdmin(String email) {
         Instant now = Instant.now();
         return new User(
                 new UserId(CodedAdmin.ID),
@@ -74,7 +73,7 @@ public final class User {
                 CodedAdmin.FIRST_NAME,
                 CodedAdmin.LAST_NAME,
                 UserRole.ADMIN,
-                accountMode == null ? AccountMode.BOTH : accountMode,
+                AccountMode.BOTH,
                 true,
                 now,
                 now
@@ -114,11 +113,6 @@ public final class User {
 
     public void replacePassword(String passwordHash) {
         this.passwordHash = requireHash(passwordHash);
-        this.updatedAt = Instant.now();
-    }
-
-    public void changeAccountMode(AccountMode accountMode) {
-        this.accountMode = Objects.requireNonNull(accountMode);
         this.updatedAt = Instant.now();
     }
 
