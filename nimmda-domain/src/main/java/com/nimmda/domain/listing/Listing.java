@@ -113,6 +113,23 @@ public final class Listing {
         this.updatedAt = Instant.now();
     }
 
+    public void updateDetails(
+            String title,
+            Money price,
+            Category category,
+            Location location,
+            String imageSrc
+    ) {
+        this.title = requireTitle(title);
+        this.price = Objects.requireNonNull(price);
+        this.category = Objects.requireNonNull(category);
+        this.location = Objects.requireNonNull(location);
+        if (imageSrc != null && !imageSrc.isBlank()) {
+            this.imageSrc = requireImage(imageSrc);
+        }
+        this.updatedAt = Instant.now();
+    }
+
     public void recordView() {
         this.views += 1;
         this.updatedAt = Instant.now();

@@ -42,18 +42,24 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint((request, response, ex) -> {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                    objectMapper.writeValue(response.getOutputStream(), new ApiErrorResponse(
-                            Instant.now(),
-                            HttpServletResponse.SC_UNAUTHORIZED,
-                            "Unauthorized",
-                            "Authentication required",
-                            request.getRequestURI(),
-                            "invalid"
-                    ));
-                }))
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, ex) -> writeError(
+                                response,
+                                request.getRequestURI(),
+                                HttpServletResponse.SC_UNAUTHORIZED,
+                                "Unauthorized",
+                                "Authentication required",
+                                "invalid"
+                        ))
+                        .accessDeniedHandler((request, response, ex) -> writeError(
+                                response,
+                                request.getRequestURI(),
+                                HttpServletResponse.SC_FORBIDDEN,
+                                "Forbidden",
+                                "Access denied",
+                                "forbidden"
+                        ))
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/error").permitAll()
@@ -61,15 +67,31 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/listings/mine").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/listings", "/api/listings/*").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/listings").authenticated()
-                        .requestMatchers(HttpMethod.PATCH, "/api/listings/*").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/listings/*/inquiries").authenticated()
-                        .requestMatchers("/api/conversations", "/api/conversations/**").authenticated()
-                        .requestMatchers("/api/favorites", "/api/favorites/**").authenticated()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .anyRequest().permitAll()
+                        .requestMatchers("/api/**").authenticated()
+                        .anyRequest().denyAll()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
+    }
+
+    private void writeError(
+            HttpServletResponse response,
+            String path,
+            int status,
+            String error,
+            String message,
+            String code
+    ) throws java.io.IOException {
+        response.setStatus(status);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        objectMapper.writeValue(response.getOutputStream(), new ApiErrorResponse(
+                Instant.now(),
+                status,
+                error,
+                message,
+                path,
+                code
+        ));
     }
 }

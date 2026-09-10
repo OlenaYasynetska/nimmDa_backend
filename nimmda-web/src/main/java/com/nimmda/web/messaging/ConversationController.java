@@ -1,10 +1,12 @@
 package com.nimmda.web.messaging;
 
 import com.nimmda.application.messaging.ConversationView;
+import com.nimmda.application.messaging.GetConversationUseCase;
 import com.nimmda.application.messaging.ListSellerConversationsUseCase;
 import com.nimmda.application.messaging.ReplyToConversationUseCase;
 import com.nimmda.application.messaging.SendInquiryCommand;
 import com.nimmda.application.messaging.SendInquiryUseCase;
+import com.nimmda.web.security.AuthenticatedUser;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,15 +24,18 @@ public class ConversationController {
 
     private final SendInquiryUseCase sendInquiryUseCase;
     private final ListSellerConversationsUseCase listSellerConversationsUseCase;
+    private final GetConversationUseCase getConversationUseCase;
     private final ReplyToConversationUseCase replyToConversationUseCase;
 
     public ConversationController(
             SendInquiryUseCase sendInquiryUseCase,
             ListSellerConversationsUseCase listSellerConversationsUseCase,
+            GetConversationUseCase getConversationUseCase,
             ReplyToConversationUseCase replyToConversationUseCase
     ) {
         this.sendInquiryUseCase = sendInquiryUseCase;
         this.listSellerConversationsUseCase = listSellerConversationsUseCase;
+        this.getConversationUseCase = getConversationUseCase;
         this.replyToConversationUseCase = replyToConversationUseCase;
     }
 
@@ -43,14 +48,19 @@ public class ConversationController {
         String message = request == null ? null : request.message();
         return sendInquiryUseCase.execute(new SendInquiryCommand(
                 listingId,
-                authentication.getName(),
+                AuthenticatedUser.id(authentication),
                 message
         ));
     }
 
     @GetMapping("/conversations")
     public List<ConversationView> list(Authentication authentication) {
-        return listSellerConversationsUseCase.execute(authentication.getName());
+        return listSellerConversationsUseCase.execute(AuthenticatedUser.id(authentication));
+    }
+
+    @GetMapping("/conversations/{id}")
+    public ConversationView get(Authentication authentication, @PathVariable String id) {
+        return getConversationUseCase.execute(id, AuthenticatedUser.id(authentication));
     }
 
     @PostMapping("/conversations/{id}/messages")
@@ -59,6 +69,6 @@ public class ConversationController {
             @PathVariable String id,
             @Valid @RequestBody ConversationReplyRequest request
     ) {
-        return replyToConversationUseCase.execute(id, authentication.getName(), request.message());
+        return replyToConversationUseCase.execute(id, AuthenticatedUser.id(authentication), request.message());
     }
 }

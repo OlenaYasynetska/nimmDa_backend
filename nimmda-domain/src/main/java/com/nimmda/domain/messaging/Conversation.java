@@ -163,6 +163,10 @@ public final class Conversation {
         return sellerId.equals(viewerId);
     }
 
+    public boolean includes(UserId userId) {
+        return sellerId.equals(userId) || buyerId.equals(userId);
+    }
+
     private static String requireName(String name, String field) {
         Objects.requireNonNull(name, field + " must not be null");
         String normalized = name.trim();

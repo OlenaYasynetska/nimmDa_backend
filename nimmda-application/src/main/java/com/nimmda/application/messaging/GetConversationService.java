@@ -3,17 +3,16 @@ package com.nimmda.application.messaging;
 import com.nimmda.domain.messaging.Conversation;
 import com.nimmda.domain.messaging.ConversationId;
 import com.nimmda.domain.messaging.ConversationRepository;
-import com.nimmda.domain.shared.UserId;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class ReplyToConversationService implements ReplyToConversationUseCase {
+public class GetConversationService implements GetConversationUseCase {
 
     private final ConversationRepository conversationRepository;
     private final ConversationViewAssembler views;
 
-    public ReplyToConversationService(
+    public GetConversationService(
             ConversationRepository conversationRepository,
             ConversationViewAssembler views
     ) {
@@ -22,18 +21,12 @@ public class ReplyToConversationService implements ReplyToConversationUseCase {
     }
 
     @Override
-    @Transactional
-    public ConversationView execute(String conversationId, String userId, String message) {
+    @Transactional(readOnly = true)
+    public ConversationView execute(String conversationId, String userId) {
         Conversation conversation = conversationRepository
                 .findById(new ConversationId(conversationId))
                 .orElseThrow(() -> new ConversationNotFoundException(conversationId));
         ConversationAuthorization.requireParticipant(conversation, userId);
-        UserId actor = new UserId(userId);
-        if (conversation.sellerId().equals(actor)) {
-            conversation.addSellerMessage(message);
-        } else {
-            conversation.addBuyerMessage(message);
-        }
-        return views.toView(conversationRepository.save(conversation), userId);
+        return views.toView(conversation, userId);
     }
 }

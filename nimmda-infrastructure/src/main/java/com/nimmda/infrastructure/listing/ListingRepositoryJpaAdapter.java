@@ -60,6 +60,11 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
         return jpaRepository.findAll().stream().map(this::toDomain).toList();
     }
 
+    @Override
+    public void delete(ListingId listingId) {
+        jpaRepository.deleteById(listingId.value());
+    }
+
     private ListingJpaEntity toEntity(Listing listing) {
         ListingJpaEntity entity = new ListingJpaEntity();
         entity.setId(listing.id().value());

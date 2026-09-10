@@ -18,4 +18,6 @@ public interface ListingRepository {
     List<Listing> findBySellerId(UserId sellerId);
 
     List<Listing> findAll();
+
+    void delete(ListingId listingId);
 }

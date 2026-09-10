@@ -1,6 +1,5 @@
 package com.nimmda.application.listing;
 
-import com.nimmda.application.security.ForbiddenActionException;
 import com.nimmda.domain.listing.Listing;
 import com.nimmda.domain.listing.ListingId;
 import com.nimmda.domain.listing.ListingRepository;
@@ -24,9 +23,7 @@ public class UpdateListingStatusService implements UpdateListingStatusUseCase {
         Listing listing = listingRepository
                 .findById(new ListingId(listingId))
                 .orElseThrow(() -> new ListingNotFoundException(listingId));
-        if (!listing.sellerId().value().equals(sellerId)) {
-            throw new ForbiddenActionException("Not the listing owner");
-        }
+        ListingAuthorization.requireOwner(listing, sellerId);
         String normalized = status == null ? "" : status.trim().toLowerCase(Locale.ROOT);
         if ("paused".equals(normalized) || "pausiert".equals(normalized)) {
             listing.pause();
