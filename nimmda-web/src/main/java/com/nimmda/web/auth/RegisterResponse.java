@@ -1,4 +1,4 @@
 package com.nimmda.web.auth;
 
-public record RegisterResponse(boolean mailSent, String verifyUrl) {
+public record RegisterResponse(boolean mailSent) {
 }

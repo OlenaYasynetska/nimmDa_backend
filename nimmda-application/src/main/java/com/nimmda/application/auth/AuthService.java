@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Locale;
+import java.util.logging.Logger;
 
 @Service
 public class AuthService implements
@@ -28,11 +29,12 @@ public class AuthService implements
         VerifyEmailUseCase,
         RequestPasswordResetUseCase,
         ResetPasswordUseCase,
-        ResendVerificationUseCase,
-        ConfirmEmailUseCase {
+        ResendVerificationUseCase {
 
+    private static final Logger log = Logger.getLogger(AuthService.class.getName());
     private static final Duration VERIFY_TTL = Duration.ofHours(24);
     private static final Duration RESET_TTL = Duration.ofHours(1);
+    private static final String VERIFIED_MESSAGE = "E-Mail bestätigt. Du kannst dich jetzt anmelden.";
 
     private final UserRepository userRepository;
     private final AuthTokenRepository authTokenRepository;
@@ -118,31 +120,24 @@ public class AuthService implements
 
     @Override
     @Transactional
-    public AuthSession verify(String token) {
-        return toSession(markEmailVerified(token));
-    }
-
-    @Override
-    @Transactional
-    public void confirm(String token) {
-        markEmailVerified(token);
-    }
-
-    private User markEmailVerified(String token) {
+    public EmailVerified verify(String token) {
         AuthToken authToken = authTokenRepository
-                .findUsableByToken(token, AuthTokenType.VERIFY)
+                .findByToken(token, AuthTokenType.VERIFY)
                 .orElseThrow(() -> new AuthException("expired"));
-        if (!authToken.usable(Instant.now())) {
-            throw new AuthException("expired");
-        }
         User user = userRepository
                 .findById(authToken.userId())
                 .orElseThrow(() -> new AuthException("expired"));
+        if (user.emailVerified()) {
+            return new EmailVerified(true, VERIFIED_MESSAGE, user.email());
+        }
+        if (!authToken.usable(Instant.now())) {
+            throw new AuthException("expired");
+        }
         user.verifyEmail();
         userRepository.save(user);
         authToken.consume();
         authTokenRepository.save(authToken);
-        return user;
+        return new EmailVerified(true, VERIFIED_MESSAGE, user.email());
     }
 
     @Override
@@ -150,11 +145,11 @@ public class AuthService implements
     public RegisterUserResult requestReset(String email) {
         String normalized = User.normalizeEmail(email);
         if (CodedAdmin.isEmail(normalized, superAdminEmail)) {
-            return new RegisterUserResult(true, null);
+            return new RegisterUserResult(true);
         }
         User user = userRepository.findByEmail(normalized).orElse(null);
         if (user == null) {
-            return new RegisterUserResult(true, null);
+            return new RegisterUserResult(true);
         }
         return issueMail(user, AuthTokenType.RESET);
     }
@@ -184,7 +179,7 @@ public class AuthService implements
         String normalized = User.normalizeEmail(email);
         User user = userRepository.findByEmail(normalized).orElse(null);
         if (user == null || user.emailVerified() || CodedAdmin.isEmail(normalized, superAdminEmail)) {
-            return new RegisterUserResult(true, null);
+            return new RegisterUserResult(true);
         }
         return issueMail(user, AuthTokenType.VERIFY);
     }
@@ -199,10 +194,13 @@ public class AuthService implements
                 : frontendAuthLinks.verifyUrl(token.token());
         String mailType = type == AuthTokenType.RESET ? "reset" : "verify";
         boolean sent = sendAuthMailUseCase.execute(new SendAuthMailCommand(user.email(), mailType, link));
+        if (exposeDevLinks) {
+            log.info("Auth " + mailType + " link for " + user.email() + ": " + link);
+        }
         if (!sent && !exposeDevLinks) {
             throw new AuthException("mailFailed");
         }
-        return new RegisterUserResult(sent, exposeDevLinks ? link : null);
+        return new RegisterUserResult(sent);
     }
 
     private AuthSession toSession(User user) {

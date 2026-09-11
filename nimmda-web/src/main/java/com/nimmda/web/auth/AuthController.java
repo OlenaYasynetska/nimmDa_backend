@@ -1,7 +1,7 @@
 package com.nimmda.web.auth;
 
 import com.nimmda.application.auth.AuthSession;
-import com.nimmda.application.auth.ConfirmEmailUseCase;
+import com.nimmda.application.auth.EmailVerified;
 import com.nimmda.application.auth.LoginUserCommand;
 import com.nimmda.application.auth.LoginUserUseCase;
 import com.nimmda.application.auth.RegisterUserCommand;
@@ -29,7 +29,6 @@ public class AuthController {
     private final RegisterUserUseCase registerUserUseCase;
     private final LoginUserUseCase loginUserUseCase;
     private final VerifyEmailUseCase verifyEmailUseCase;
-    private final ConfirmEmailUseCase confirmEmailUseCase;
     private final RequestPasswordResetUseCase requestPasswordResetUseCase;
     private final ResetPasswordUseCase resetPasswordUseCase;
     private final ResendVerificationUseCase resendVerificationUseCase;
@@ -38,7 +37,6 @@ public class AuthController {
             RegisterUserUseCase registerUserUseCase,
             LoginUserUseCase loginUserUseCase,
             VerifyEmailUseCase verifyEmailUseCase,
-            ConfirmEmailUseCase confirmEmailUseCase,
             RequestPasswordResetUseCase requestPasswordResetUseCase,
             ResetPasswordUseCase resetPasswordUseCase,
             ResendVerificationUseCase resendVerificationUseCase
@@ -46,7 +44,6 @@ public class AuthController {
         this.registerUserUseCase = registerUserUseCase;
         this.loginUserUseCase = loginUserUseCase;
         this.verifyEmailUseCase = verifyEmailUseCase;
-        this.confirmEmailUseCase = confirmEmailUseCase;
         this.requestPasswordResetUseCase = requestPasswordResetUseCase;
         this.resetPasswordUseCase = resetPasswordUseCase;
         this.resendVerificationUseCase = resendVerificationUseCase;
@@ -58,7 +55,7 @@ public class AuthController {
         RegisterUserResult result = registerUserUseCase.register(
                 new RegisterUserCommand(request.email(), request.password())
         );
-        return new RegisterResponse(result.mailSent(), result.verifyUrl());
+        return new RegisterResponse(result.mailSent());
     }
 
     @PostMapping("/login")
@@ -70,19 +67,18 @@ public class AuthController {
 
     @GetMapping("/verify-email")
     public VerifyEmailResponse confirmEmail(@RequestParam("token") String token) {
-        confirmEmailUseCase.confirm(token);
-        return new VerifyEmailResponse("E-Mail bestätigt. Du kannst dich jetzt anmelden.", true);
+        return toVerifyResponse(verifyEmailUseCase.verify(token));
     }
 
     @PostMapping("/verify")
-    public AuthSessionResponse verify(@Valid @RequestBody TokenRequest request) {
-        return toResponse(verifyEmailUseCase.verify(request.token()));
+    public VerifyEmailResponse verify(@Valid @RequestBody TokenRequest request) {
+        return toVerifyResponse(verifyEmailUseCase.verify(request.token()));
     }
 
     @PostMapping("/forgot-password")
     public RegisterResponse forgotPassword(@Valid @RequestBody EmailRequest request) {
         RegisterUserResult result = requestPasswordResetUseCase.requestReset(request.email());
-        return new RegisterResponse(result.mailSent(), result.verifyUrl());
+        return new RegisterResponse(result.mailSent());
     }
 
     @PostMapping("/reset-password")
@@ -94,7 +90,11 @@ public class AuthController {
     @PostMapping("/resend-verification")
     public RegisterResponse resend(@Valid @RequestBody EmailRequest request) {
         RegisterUserResult result = resendVerificationUseCase.resend(request.email());
-        return new RegisterResponse(result.mailSent(), result.verifyUrl());
+        return new RegisterResponse(result.mailSent());
+    }
+
+    private static VerifyEmailResponse toVerifyResponse(EmailVerified result) {
+        return new VerifyEmailResponse(result.message(), result.verified(), result.email());
     }
 
     private static AuthSessionResponse toResponse(AuthSession session) {

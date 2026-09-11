@@ -31,6 +31,13 @@ public class AuthTokenRepositoryJpaAdapter implements AuthTokenRepository {
     }
 
     @Override
+    public Optional<AuthToken> findByToken(String token, AuthTokenType type) {
+        return jpaRepository
+                .findByTokenAndType(token, AuthTokenJpaType.valueOf(type.name()))
+                .map(this::toDomain);
+    }
+
+    @Override
     @Transactional
     public void deleteOpenTokens(String userId, AuthTokenType type) {
         jpaRepository.deleteOpenTokens(userId, AuthTokenJpaType.valueOf(type.name()));

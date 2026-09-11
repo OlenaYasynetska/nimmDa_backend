@@ -11,6 +11,8 @@ public interface SpringDataAuthTokenJpaRepository extends JpaRepository<AuthToke
 
     Optional<AuthTokenJpaEntity> findByTokenAndTypeAndConsumedAtIsNull(String token, AuthTokenJpaType type);
 
+    Optional<AuthTokenJpaEntity> findByTokenAndType(String token, AuthTokenJpaType type);
+
     @Modifying
     @Query("delete from AuthTokenJpaEntity t where t.userId = :userId and t.type = :type and t.consumedAt is null")
     void deleteOpenTokens(@Param("userId") String userId, @Param("type") AuthTokenJpaType type);

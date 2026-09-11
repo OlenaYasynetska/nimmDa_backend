@@ -55,13 +55,13 @@ Listings: [http://localhost:8080/api/listings](http://localhost:8080/api/listing
 | Method | Path | Store |
 | --- | --- | --- |
 | `GET` | `/api/health` | — |
-| `POST` | `/api/auth/register` | MySQL + mail |
-| `POST` | `/api/auth/login` | MySQL |
-| `POST` | `/api/auth/verify` | MySQL |
+| `POST` | `/api/auth/register` | MySQL + mail (unverified user) |
+| `POST` | `/api/auth/login` | MySQL (JWT, only if verified) |
+| `POST` | `/api/auth/verify` | MySQL (activate only, no JWT) |
+| `GET` | `/api/auth/verify-email` | MySQL (activate only, no JWT) |
 | `POST` | `/api/auth/forgot-password` | MySQL + mail |
 | `POST` | `/api/auth/reset-password` | MySQL |
 | `POST` | `/api/auth/resend-verification` | MySQL + mail |
-| `POST` | `/api/auth/mail` | Resend |
 | `GET` | `/api/listings` | MySQL |
 | `GET` | `/api/listings/mine` | MySQL (JWT) |
 | `GET` | `/api/listings/{id}` | MySQL |

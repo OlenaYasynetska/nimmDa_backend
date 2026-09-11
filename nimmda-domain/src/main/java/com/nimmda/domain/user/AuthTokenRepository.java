@@ -8,5 +8,7 @@ public interface AuthTokenRepository {
 
     Optional<AuthToken> findUsableByToken(String token, AuthTokenType type);
 
+    Optional<AuthToken> findByToken(String token, AuthTokenType type);
+
     void deleteOpenTokens(String userId, AuthTokenType type);
 }
