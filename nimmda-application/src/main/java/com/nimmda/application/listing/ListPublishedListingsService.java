@@ -1,6 +1,5 @@
 package com.nimmda.application.listing;
 
-import com.nimmda.domain.listing.Category;
 import com.nimmda.domain.listing.ListingRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,11 +17,11 @@ public class ListPublishedListingsService implements ListPublishedListingsUseCas
 
     @Override
     @Transactional(readOnly = true)
-    public List<ListingView> execute(String category) {
-        if (category == null || category.isBlank()) {
-            return listingRepository.findPublished().stream().map(ListingMapper::toView).toList();
-        }
-        return listingRepository.findPublishedByCategory(new Category(category)).stream()
+    public List<ListingView> execute(PublishedListingsQuery query) {
+        PublishedListingsQuery safe = query == null
+                ? new PublishedListingsQuery(null, null, null, null, null, null, false)
+                : query;
+        return listingRepository.findPublished(safe.toSearch()).stream()
                 .map(ListingMapper::toView)
                 .toList();
     }

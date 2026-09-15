@@ -4,5 +4,5 @@ import java.util.List;
 
 public interface ListPublishedListingsUseCase {
 
-    List<ListingView> execute(String category);
+    List<ListingView> execute(PublishedListingsQuery query);
 }

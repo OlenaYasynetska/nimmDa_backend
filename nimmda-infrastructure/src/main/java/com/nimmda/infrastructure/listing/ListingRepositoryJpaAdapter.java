@@ -4,13 +4,20 @@ import com.nimmda.domain.listing.Category;
 import com.nimmda.domain.listing.Listing;
 import com.nimmda.domain.listing.ListingId;
 import com.nimmda.domain.listing.ListingRepository;
+import com.nimmda.domain.listing.ListingSearch;
+import com.nimmda.domain.listing.ListingSort;
 import com.nimmda.domain.listing.ListingStatus;
 import com.nimmda.domain.listing.Location;
 import com.nimmda.domain.listing.Money;
 import com.nimmda.domain.shared.UserId;
+import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 @Repository
@@ -33,17 +40,9 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
     }
 
     @Override
-    public List<Listing> findPublished() {
-        return jpaRepository.findByStatusOrderByCreatedAtDesc(ListingJpaStatus.ACTIVE).stream()
-                .map(this::toDomain)
-                .toList();
-    }
-
-    @Override
-    public List<Listing> findPublishedByCategory(Category category) {
-        return jpaRepository
-                .findByStatusAndCategoryOrderByCreatedAtDesc(ListingJpaStatus.ACTIVE, category.name())
-                .stream()
+    public List<Listing> findPublished(ListingSearch search) {
+        ListingSearch criteria = search == null ? ListingSearch.allPublished() : search;
+        return jpaRepository.findAll(publishedSpec(criteria), sortOf(criteria.sort())).stream()
                 .map(this::toDomain)
                 .toList();
     }
@@ -63,6 +62,40 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
     @Override
     public void delete(ListingId listingId) {
         jpaRepository.deleteById(listingId.value());
+    }
+
+    private static Specification<ListingJpaEntity> publishedSpec(ListingSearch search) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.equal(root.get("status"), ListingJpaStatus.ACTIVE));
+            String like = search.textLike();
+            if (like != null) {
+                predicates.add(cb.like(cb.lower(root.get("title")), like, '\\'));
+            }
+            if (search.category() != null) {
+                predicates.add(cb.equal(root.get("category"), search.category()));
+            }
+            if (search.location() != null) {
+                predicates.add(cb.equal(cb.lower(root.get("location")), search.location().toLowerCase(Locale.ROOT)));
+            }
+            if (search.minPrice() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("price"), search.minPrice()));
+            }
+            if (search.maxPrice() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("price"), search.maxPrice()));
+            }
+            return cb.and(predicates.toArray(Predicate[]::new));
+        };
+    }
+
+    private static Sort sortOf(ListingSort sort) {
+        ListingSort safe = sort == null ? ListingSort.NEWEST : sort;
+        return switch (safe) {
+            case PRICE_ASC -> Sort.by(Sort.Order.asc("price"), Sort.Order.desc("createdAt"));
+            case PRICE_DESC -> Sort.by(Sort.Order.desc("price"), Sort.Order.desc("createdAt"));
+            case OLDEST -> Sort.by(Sort.Order.asc("createdAt"));
+            case NEWEST -> Sort.by(Sort.Order.desc("createdAt"));
+        };
     }
 
     private ListingJpaEntity toEntity(Listing listing) {

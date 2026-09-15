@@ -7,6 +7,7 @@ import com.nimmda.application.listing.ListSellerListingsUseCase;
 import com.nimmda.application.listing.ListingView;
 import com.nimmda.application.listing.PublishListingCommand;
 import com.nimmda.application.listing.PublishListingUseCase;
+import com.nimmda.application.listing.PublishedListingsQuery;
 import com.nimmda.application.listing.UpdateListingCommand;
 import com.nimmda.application.listing.UpdateListingStatusUseCase;
 import com.nimmda.application.listing.UpdateListingUseCase;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -59,8 +61,25 @@ public class ListingController {
     }
 
     @GetMapping
-    public List<ListingView> list(@RequestParam(required = false) String category) {
-        return listPublishedListingsUseCase.execute(category);
+    public List<ListingView> list(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String free
+    ) {
+        boolean freeOnly = "1".equals(free) || "true".equalsIgnoreCase(free);
+        return listPublishedListingsUseCase.execute(new PublishedListingsQuery(
+                q,
+                category,
+                location,
+                minPrice,
+                maxPrice,
+                sort,
+                freeOnly
+        ));
     }
 
     @GetMapping("/mine")

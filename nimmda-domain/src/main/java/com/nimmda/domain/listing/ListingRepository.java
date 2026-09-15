@@ -11,9 +11,7 @@ public interface ListingRepository {
 
     Optional<Listing> findById(ListingId listingId);
 
-    List<Listing> findPublished();
-
-    List<Listing> findPublishedByCategory(Category category);
+    List<Listing> findPublished(ListingSearch search);
 
     List<Listing> findBySellerId(UserId sellerId);
 
