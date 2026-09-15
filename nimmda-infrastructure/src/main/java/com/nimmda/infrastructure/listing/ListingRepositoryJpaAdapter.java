@@ -10,7 +10,9 @@ import com.nimmda.domain.listing.ListingSort;
 import com.nimmda.domain.listing.ListingStatus;
 import com.nimmda.domain.listing.Location;
 import com.nimmda.domain.listing.Money;
+import com.nimmda.domain.geo.GeoCoordinates;
 import com.nimmda.domain.shared.UserId;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -46,9 +48,10 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
         ListingSearch criteria = search == null ? ListingSearch.allPublished() : search;
         int safePage = Math.max(page, 0);
         int safeSize = size < 1 ? 20 : size;
+        Sort sort = criteria.sort() == ListingSort.DISTANCE ? Sort.unsorted() : sortOf(criteria.sort());
         var result = jpaRepository.findAll(
                 publishedSpec(criteria),
-                PageRequest.of(safePage, safeSize, sortOf(criteria.sort()))
+                PageRequest.of(safePage, safeSize, sort)
         );
         return new ListingSearchResult(
                 result.getContent().stream().map(this::toDomain).toList(),
@@ -95,8 +98,25 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
             if (search.maxPrice() != null) {
                 predicates.add(cb.lessThanOrEqualTo(root.get("price"), search.maxPrice()));
             }
+            Expression<Double> distanceKm = null;
+            if (search.origin() != null) {
+                predicates.add(cb.isNotNull(root.get("latitude")));
+                predicates.add(cb.isNotNull(root.get("longitude")));
+                distanceKm = ListingGeoQuery.distanceKm(cb, root, search.origin());
+                if (search.hasRadius()) {
+                    ListingGeoQuery.addBoundingBox(predicates, cb, root, search.origin(), search.radiusKm());
+                    predicates.add(cb.le(distanceKm, search.radiusKm().doubleValue()));
+                }
+            }
+            if (distanceKm != null && search.sort() == ListingSort.DISTANCE && !isCountQuery(query)) {
+                query.orderBy(cb.asc(distanceKm), cb.desc(root.get("createdAt")));
+            }
             return cb.and(predicates.toArray(Predicate[]::new));
         };
+    }
+
+    private static boolean isCountQuery(jakarta.persistence.criteria.CriteriaQuery<?> query) {
+        return query.getResultType() == Long.class || query.getResultType() == long.class;
     }
 
     private static Sort sortOf(ListingSort sort) {
@@ -105,7 +125,7 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
             case PRICE_ASC -> Sort.by(Sort.Order.asc("price"), Sort.Order.desc("createdAt"));
             case PRICE_DESC -> Sort.by(Sort.Order.desc("price"), Sort.Order.desc("createdAt"));
             case OLDEST -> Sort.by(Sort.Order.asc("createdAt"));
-            case NEWEST -> Sort.by(Sort.Order.desc("createdAt"));
+            case DISTANCE, NEWEST -> Sort.by(Sort.Order.desc("createdAt"));
         };
     }
 
@@ -117,6 +137,9 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
         entity.setPrice(listing.price().amount());
         entity.setCategory(listing.category().name());
         entity.setLocation(listing.location().city());
+        GeoCoordinates coordinates = listing.location().coordinates();
+        entity.setLatitude(coordinates == null ? null : coordinates.latitude());
+        entity.setLongitude(coordinates == null ? null : coordinates.longitude());
         entity.setImageSrc(listing.imageSrc());
         entity.setStatus(ListingJpaStatus.valueOf(listing.status().name()));
         entity.setViews(listing.views());
@@ -133,7 +156,7 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
                 entity.getTitle(),
                 Money.of(entity.getPrice()),
                 new Category(entity.getCategory()),
-                new Location(entity.getLocation()),
+                new Location(entity.getLocation(), toCoordinates(entity.getLatitude(), entity.getLongitude())),
                 entity.getImageSrc(),
                 ListingStatus.valueOf(entity.getStatus().name()),
                 entity.getViews(),
@@ -141,5 +164,12 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()
         );
+    }
+
+    private static GeoCoordinates toCoordinates(Double latitude, Double longitude) {
+        if (latitude == null || longitude == null) {
+            return null;
+        }
+        return new GeoCoordinates(latitude, longitude);
     }
 }

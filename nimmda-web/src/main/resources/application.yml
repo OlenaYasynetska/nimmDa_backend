@@ -61,3 +61,7 @@ app:
     expose-dev-links: ${AUTH_EXPOSE_DEV_LINKS:false}
     super-admin-email: ${SUPER_ADMIN_EMAIL:}
     super-admin-password: ${SUPER_ADMIN_PASSWORD:}
+  geocoder:
+    enabled: ${GEOCODER_ENABLED:true}
+    url: ${GEOCODER_URL:https://nominatim.openstreetmap.org/search}
+    user-agent: ${GEOCODER_USER_AGENT:NimmDa/1.0 (https://nimmda.org)}

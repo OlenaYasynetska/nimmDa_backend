@@ -70,6 +70,7 @@ public class ListingController {
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false) String sort,
             @RequestParam(required = false) String free,
+            @RequestParam(required = false) Integer km,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
@@ -82,6 +83,7 @@ public class ListingController {
                 maxPrice,
                 sort,
                 freeOnly,
+                km,
                 page,
                 size
         ));

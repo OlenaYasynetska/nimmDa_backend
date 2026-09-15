@@ -3,6 +3,7 @@ package com.nimmda.web.error;
 import com.nimmda.application.auth.AuthException;
 import com.nimmda.application.listing.ListingNotFoundException;
 import com.nimmda.application.messaging.ConversationNotFoundException;
+import com.nimmda.application.place.PlaceNotResolvedException;
 import com.nimmda.application.security.ForbiddenActionException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -34,7 +35,21 @@ public class GlobalExceptionHandler {
                 .map(error -> error.getField() + " " + error.getDefaultMessage())
                 .orElse("Validation failed")
                 : ex.getMessage();
-        return build(HttpStatus.BAD_REQUEST, message, request.getRequestURI(), null);
+        return build(HttpStatus.BAD_REQUEST, message, request.getRequestURI(), null, null);
+    }
+
+    @ExceptionHandler(PlaceNotResolvedException.class)
+    public ResponseEntity<ApiErrorResponse> handlePlace(
+            PlaceNotResolvedException ex,
+            HttpServletRequest request
+    ) {
+        return build(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage(),
+                request.getRequestURI(),
+                ex.code(),
+                ex.suggestions()
+        );
     }
 
     @ExceptionHandler(AuthException.class)
@@ -47,7 +62,7 @@ public class GlobalExceptionHandler {
             case "mailFailed" -> HttpStatus.SERVICE_UNAVAILABLE;
             default -> HttpStatus.UNAUTHORIZED;
         };
-        return build(status, ex.getMessage(), request.getRequestURI(), ex.code());
+        return build(status, ex.getMessage(), request.getRequestURI(), ex.code(), null);
     }
 
     @ExceptionHandler({ListingNotFoundException.class, ConversationNotFoundException.class})
@@ -55,7 +70,7 @@ public class GlobalExceptionHandler {
             RuntimeException ex,
             HttpServletRequest request
     ) {
-        return build(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI(), null);
+        return build(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI(), null, null);
     }
 
     @ExceptionHandler(ForbiddenActionException.class)
@@ -63,7 +78,7 @@ public class GlobalExceptionHandler {
             ForbiddenActionException ex,
             HttpServletRequest request
     ) {
-        return build(HttpStatus.FORBIDDEN, ex.getMessage(), request.getRequestURI(), "forbidden");
+        return build(HttpStatus.FORBIDDEN, ex.getMessage(), request.getRequestURI(), "forbidden", null);
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
@@ -72,23 +87,30 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         String message = ex.getMessage() == null || ex.getMessage().isBlank() ? "Not found" : ex.getMessage();
-        return build(HttpStatus.NOT_FOUND, message, request.getRequestURI(), null);
+        return build(HttpStatus.NOT_FOUND, message, request.getRequestURI(), null, null);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleUnhandled(Exception ex, HttpServletRequest request) {
         log.error("Unhandled error on {}", request.getRequestURI(), ex);
-        return build(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error", request.getRequestURI(), null);
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error", request.getRequestURI(), null, null);
     }
 
-    private ResponseEntity<ApiErrorResponse> build(HttpStatus status, String message, String path, String code) {
+    private ResponseEntity<ApiErrorResponse> build(
+            HttpStatus status,
+            String message,
+            String path,
+            String code,
+            java.util.List<String> suggestions
+    ) {
         ApiErrorResponse body = new ApiErrorResponse(
                 Instant.now(),
                 status.value(),
                 status.getReasonPhrase(),
                 message,
                 path,
-                code
+                code,
+                suggestions
         );
         return ResponseEntity.status(status).body(body);
     }

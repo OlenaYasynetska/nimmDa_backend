@@ -35,6 +35,12 @@ public class ListingJpaEntity {
     @Column(name = "location", nullable = false, length = 128)
     private String location;
 
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
     @Column(name = "image_src", nullable = false, columnDefinition = "MEDIUMTEXT")
     private String imageSrc;
 
@@ -101,6 +107,22 @@ public class ListingJpaEntity {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
     }
 
     public String getImageSrc() {

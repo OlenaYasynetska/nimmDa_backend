@@ -1,11 +1,13 @@
 package com.nimmda.application.listing;
 
+import com.nimmda.application.place.ResolvePlaceService;
 import com.nimmda.domain.listing.Category;
 import com.nimmda.domain.listing.Listing;
 import com.nimmda.domain.listing.ListingId;
 import com.nimmda.domain.listing.ListingRepository;
 import com.nimmda.domain.listing.Location;
 import com.nimmda.domain.listing.Money;
+import com.nimmda.domain.place.Place;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,9 +17,11 @@ import java.util.Locale;
 public class UpdateListingService implements UpdateListingUseCase {
 
     private final ListingRepository listingRepository;
+    private final ResolvePlaceService resolvePlaceService;
 
-    public UpdateListingService(ListingRepository listingRepository) {
+    public UpdateListingService(ListingRepository listingRepository, ResolvePlaceService resolvePlaceService) {
         this.listingRepository = listingRepository;
+        this.resolvePlaceService = resolvePlaceService;
     }
 
     @Override
@@ -27,11 +31,12 @@ public class UpdateListingService implements UpdateListingUseCase {
                 .findById(new ListingId(command.listingId()))
                 .orElseThrow(() -> new ListingNotFoundException(command.listingId()));
         ListingAuthorization.requireOwner(listing, command.actorId());
+        Place place = resolvePlaceService.requireForListing(command.location());
         listing.updateDetails(
                 command.title(),
                 Money.of(command.price()),
                 new Category(command.category()),
-                new Location(command.location()),
+                new Location(place.name(), place.coordinates()),
                 command.imageSrc()
         );
         applyStatus(listing, command.status());
