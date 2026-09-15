@@ -52,7 +52,7 @@ public class ResolvePlaceService {
             return Optional.of(local.getFirst());
         }
         if (local.size() > 1) {
-            return Optional.of(preferHomeRegion(local));
+            return Optional.of(preferHomePlace(local));
         }
         try {
             return Optional.of(persistBest(query, geocode(query), false));
@@ -96,11 +96,11 @@ public class ResolvePlaceService {
         if (pool.size() > 1 && failIfAmbiguous) {
             throw new PlaceNotResolvedException(pool.stream().map(GeocodedPlace::displayName).toList());
         }
-        GeocodedPlace chosen = preferHomeRegion(pool);
+        GeocodedPlace chosen = preferHomeGeocoded(pool);
         Place place = toPlace(chosen);
         List<Place> existingByName = placeRepository.findByNormalizedName(place.nameNormalized());
         if (!existingByName.isEmpty()) {
-            return preferHomeRegion(existingByName);
+            return preferHomePlace(existingByName);
         }
         return placeRepository.findDuplicate(place).orElseGet(() -> placeRepository.save(place));
     }
@@ -123,7 +123,7 @@ public class ResolvePlaceService {
         return country.trim().toUpperCase(Locale.ROOT);
     }
 
-    private static Place preferHomeRegion(List<Place> places) {
+    private static Place preferHomePlace(List<Place> places) {
         return places.stream()
                 .min(Comparator
                         .comparing((Place place) -> HOME_REGION.equalsIgnoreCase(place.region()) ? 0 : 1)
@@ -131,7 +131,7 @@ public class ResolvePlaceService {
                 .orElseThrow();
     }
 
-    private static GeocodedPlace preferHomeRegion(List<GeocodedPlace> places) {
+    private static GeocodedPlace preferHomeGeocoded(List<GeocodedPlace> places) {
         return places.stream()
                 .min(Comparator
                         .comparing((GeocodedPlace place) -> HOME_REGION.equalsIgnoreCase(nullToEmpty(place.region())) ? 0 : 1)
