@@ -5,12 +5,14 @@ import com.nimmda.domain.listing.Listing;
 import com.nimmda.domain.listing.ListingId;
 import com.nimmda.domain.listing.ListingRepository;
 import com.nimmda.domain.listing.ListingSearch;
+import com.nimmda.domain.listing.ListingSearchResult;
 import com.nimmda.domain.listing.ListingSort;
 import com.nimmda.domain.listing.ListingStatus;
 import com.nimmda.domain.listing.Location;
 import com.nimmda.domain.listing.Money;
 import com.nimmda.domain.shared.UserId;
 import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
@@ -40,11 +42,20 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
     }
 
     @Override
-    public List<Listing> findPublished(ListingSearch search) {
+    public ListingSearchResult findPublished(ListingSearch search, int page, int size) {
         ListingSearch criteria = search == null ? ListingSearch.allPublished() : search;
-        return jpaRepository.findAll(publishedSpec(criteria), sortOf(criteria.sort())).stream()
-                .map(this::toDomain)
-                .toList();
+        int safePage = Math.max(page, 0);
+        int safeSize = size < 1 ? 20 : size;
+        var result = jpaRepository.findAll(
+                publishedSpec(criteria),
+                PageRequest.of(safePage, safeSize, sortOf(criteria.sort()))
+        );
+        return new ListingSearchResult(
+                result.getContent().stream().map(this::toDomain).toList(),
+                result.getNumber(),
+                result.getSize(),
+                result.getTotalElements()
+        );
     }
 
     @Override

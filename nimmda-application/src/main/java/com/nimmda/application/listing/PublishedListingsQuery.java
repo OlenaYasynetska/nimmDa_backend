@@ -12,8 +12,18 @@ public record PublishedListingsQuery(
         BigDecimal minPrice,
         BigDecimal maxPrice,
         String sort,
-        boolean free
+        boolean free,
+        int page,
+        int size
 ) {
+    public static final int DEFAULT_SIZE = 20;
+    public static final int MAX_SIZE = 100;
+
+    public PublishedListingsQuery {
+        page = Math.max(page, 0);
+        size = size < 1 ? DEFAULT_SIZE : Math.min(size, MAX_SIZE);
+    }
+
     public ListingSearch toSearch() {
         BigDecimal min = minPrice;
         BigDecimal max = maxPrice;

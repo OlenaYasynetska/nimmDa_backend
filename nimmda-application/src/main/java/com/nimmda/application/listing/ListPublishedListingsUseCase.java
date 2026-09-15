@@ -1,8 +1,6 @@
 package com.nimmda.application.listing;
 
-import java.util.List;
-
 public interface ListPublishedListingsUseCase {
 
-    List<ListingView> execute(PublishedListingsQuery query);
+    PublishedListingsPage execute(PublishedListingsQuery query);
 }

@@ -7,6 +7,7 @@ import com.nimmda.application.listing.ListSellerListingsUseCase;
 import com.nimmda.application.listing.ListingView;
 import com.nimmda.application.listing.PublishListingCommand;
 import com.nimmda.application.listing.PublishListingUseCase;
+import com.nimmda.application.listing.PublishedListingsPage;
 import com.nimmda.application.listing.PublishedListingsQuery;
 import com.nimmda.application.listing.UpdateListingCommand;
 import com.nimmda.application.listing.UpdateListingStatusUseCase;
@@ -61,14 +62,16 @@ public class ListingController {
     }
 
     @GetMapping
-    public List<ListingView> list(
+    public PublishedListingsPage list(
             @RequestParam(required = false) String q,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String location,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false) String sort,
-            @RequestParam(required = false) String free
+            @RequestParam(required = false) String free,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
     ) {
         boolean freeOnly = "1".equals(free) || "true".equalsIgnoreCase(free);
         return listPublishedListingsUseCase.execute(new PublishedListingsQuery(
@@ -78,7 +81,9 @@ public class ListingController {
                 minPrice,
                 maxPrice,
                 sort,
-                freeOnly
+                freeOnly,
+                page,
+                size
         ));
     }
 
