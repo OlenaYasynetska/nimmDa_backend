@@ -7,6 +7,7 @@ import com.nimmda.domain.place.PlaceNames;
 import com.nimmda.domain.place.PlaceRepository;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -73,8 +74,8 @@ public class PlaceRepositoryJpaAdapter implements PlaceRepository {
         entity.setRegion(place.region());
         entity.setCountry(place.country());
         entity.setPostalCode(place.postalCode());
-        entity.setLatitude(place.coordinates().latitude());
-        entity.setLongitude(place.coordinates().longitude());
+        entity.setLatitude(BigDecimal.valueOf(place.coordinates().latitude()));
+        entity.setLongitude(BigDecimal.valueOf(place.coordinates().longitude()));
         return entity;
     }
 
@@ -85,7 +86,7 @@ public class PlaceRepositoryJpaAdapter implements PlaceRepository {
                 entity.getRegion(),
                 entity.getCountry(),
                 entity.getPostalCode(),
-                new GeoCoordinates(entity.getLatitude(), entity.getLongitude())
+                new GeoCoordinates(entity.getLatitude().doubleValue(), entity.getLongitude().doubleValue())
         );
     }
 }

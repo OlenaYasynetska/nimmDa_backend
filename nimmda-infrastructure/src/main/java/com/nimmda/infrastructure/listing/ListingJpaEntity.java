@@ -35,11 +35,11 @@ public class ListingJpaEntity {
     @Column(name = "location", nullable = false, length = 128)
     private String location;
 
-    @Column(name = "latitude")
-    private Double latitude;
+    @Column(name = "latitude", precision = 10, scale = 7)
+    private BigDecimal latitude;
 
-    @Column(name = "longitude")
-    private Double longitude;
+    @Column(name = "longitude", precision = 10, scale = 7)
+    private BigDecimal longitude;
 
     @Column(name = "image_src", nullable = false, columnDefinition = "MEDIUMTEXT")
     private String imageSrc;
@@ -109,19 +109,19 @@ public class ListingJpaEntity {
         this.location = location;
     }
 
-    public Double getLatitude() {
+    public BigDecimal getLatitude() {
         return latitude;
     }
 
-    public void setLatitude(Double latitude) {
+    public void setLatitude(BigDecimal latitude) {
         this.latitude = latitude;
     }
 
-    public Double getLongitude() {
+    public BigDecimal getLongitude() {
         return longitude;
     }
 
-    public void setLongitude(Double longitude) {
+    public void setLongitude(BigDecimal longitude) {
         this.longitude = longitude;
     }
 

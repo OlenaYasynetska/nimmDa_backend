@@ -19,6 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -138,8 +139,8 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
         entity.setCategory(listing.category().name());
         entity.setLocation(listing.location().city());
         GeoCoordinates coordinates = listing.location().coordinates();
-        entity.setLatitude(coordinates == null ? null : coordinates.latitude());
-        entity.setLongitude(coordinates == null ? null : coordinates.longitude());
+        entity.setLatitude(coordinates == null ? null : BigDecimal.valueOf(coordinates.latitude()));
+        entity.setLongitude(coordinates == null ? null : BigDecimal.valueOf(coordinates.longitude()));
         entity.setImageSrc(listing.imageSrc());
         entity.setStatus(ListingJpaStatus.valueOf(listing.status().name()));
         entity.setViews(listing.views());
@@ -166,10 +167,10 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
         );
     }
 
-    private static GeoCoordinates toCoordinates(Double latitude, Double longitude) {
+    private static GeoCoordinates toCoordinates(BigDecimal latitude, BigDecimal longitude) {
         if (latitude == null || longitude == null) {
             return null;
         }
-        return new GeoCoordinates(latitude, longitude);
+        return new GeoCoordinates(latitude.doubleValue(), longitude.doubleValue());
     }
 }

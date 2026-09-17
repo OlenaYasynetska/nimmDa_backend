@@ -3,6 +3,7 @@ package com.nimmda.application.auth;
 import com.nimmda.application.mail.SendAuthMailCommand;
 import com.nimmda.application.mail.SendAuthMailUseCase;
 import com.nimmda.application.port.auth.FrontendAuthLinks;
+import com.nimmda.application.port.mail.MailSender;
 import com.nimmda.application.port.security.AccessTokenIssuer;
 import com.nimmda.application.port.security.IssuedAccessToken;
 import com.nimmda.application.port.security.PasswordHasher;
@@ -41,6 +42,7 @@ public class AuthService implements
     private final PasswordHasher passwordHasher;
     private final AccessTokenIssuer accessTokenIssuer;
     private final SendAuthMailUseCase sendAuthMailUseCase;
+    private final MailSender mailSender;
     private final FrontendAuthLinks frontendAuthLinks;
     private final boolean exposeDevLinks;
     private final String superAdminEmail;
@@ -52,6 +54,7 @@ public class AuthService implements
             PasswordHasher passwordHasher,
             AccessTokenIssuer accessTokenIssuer,
             SendAuthMailUseCase sendAuthMailUseCase,
+            MailSender mailSender,
             FrontendAuthLinks frontendAuthLinks,
             @Value("${app.auth.expose-dev-links:false}") boolean exposeDevLinks,
             @Value("${app.auth.super-admin-email:}") String superAdminEmail,
@@ -62,6 +65,7 @@ public class AuthService implements
         this.passwordHasher = passwordHasher;
         this.accessTokenIssuer = accessTokenIssuer;
         this.sendAuthMailUseCase = sendAuthMailUseCase;
+        this.mailSender = mailSender;
         this.frontendAuthLinks = frontendAuthLinks;
         this.exposeDevLinks = exposeDevLinks;
         this.superAdminEmail = superAdminEmail == null ? "" : superAdminEmail.trim();
@@ -113,7 +117,9 @@ public class AuthService implements
                     throw ex;
                 }
             }
-            throw new AuthException("unverified");
+            if (!user.emailVerified()) {
+                throw new AuthException("unverified");
+            }
         }
         return toSession(user);
     }
@@ -193,14 +199,22 @@ public class AuthService implements
                 ? frontendAuthLinks.resetUrl(token.token())
                 : frontendAuthLinks.verifyUrl(token.token());
         String mailType = type == AuthTokenType.RESET ? "reset" : "verify";
-        boolean sent = sendAuthMailUseCase.execute(new SendAuthMailCommand(user.email(), mailType, link));
+        boolean sent = mailSender.configured()
+                && sendAuthMailUseCase.execute(new SendAuthMailCommand(user.email(), mailType, link));
         if (exposeDevLinks) {
             log.info("Auth " + mailType + " link for " + user.email() + ": " + link);
         }
-        if (!sent && !exposeDevLinks) {
+        if (sent) {
+            return new RegisterUserResult(true);
+        }
+        if (mailSender.configured() && !exposeDevLinks) {
             throw new AuthException("mailFailed");
         }
-        return new RegisterUserResult(sent);
+        if (type == AuthTokenType.VERIFY && !user.emailVerified()) {
+            user.verifyEmail();
+            userRepository.save(user);
+        }
+        return new RegisterUserResult(false);
     }
 
     private AuthSession toSession(User user) {
