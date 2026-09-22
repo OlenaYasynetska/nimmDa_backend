@@ -21,7 +21,11 @@ public class CorsConfig implements WebMvcConfigurer {
     private static final List<String> PRODUCTION_ORIGINS = List.of(
             "https://www.nimmda.org",
             "https://nimmda.org",
-            "http://localhost:4200"
+            "http://localhost:4200",
+            // Capacitor WebView: Android uses https://localhost, iOS uses capacitor://localhost.
+            "https://localhost",
+            "http://localhost",
+            "capacitor://localhost"
     );
 
     private final List<String> allowedOrigins;
