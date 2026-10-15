@@ -61,6 +61,9 @@ public class ListingJpaEntity {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Column(name = "promoted_until")
+    private Instant promotedUntil;
+
     public String getId() {
         return id;
     }
@@ -171,5 +174,13 @@ public class ListingJpaEntity {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Instant getPromotedUntil() {
+        return promotedUntil;
+    }
+
+    public void setPromotedUntil(Instant promotedUntil) {
+        this.promotedUntil = promotedUntil;
     }
 }

@@ -52,6 +52,10 @@ app:
   mail:
     enabled: ${MAIL_ENABLED:false}
     from: "${MAIL_FROM:NimmDa <noreply@nimmda.org>}"
+  invoice:
+    seller-name: ${INVOICE_SELLER_NAME:Olena Yasynetska}
+    seller-address: ${INVOICE_SELLER_ADDRESS:Arbeiterstraße 26/3, 4400 Steyr, Österreich}
+    seller-email: ${INVOICE_SELLER_EMAIL:contact@ugs-info.at}
     resend:
       api-key: ${RESEND_API_KEY:}
   jwt:
@@ -61,6 +65,15 @@ app:
     expose-dev-links: ${AUTH_EXPOSE_DEV_LINKS:false}
     super-admin-email: ${SUPER_ADMIN_EMAIL:}
     super-admin-password: ${SUPER_ADMIN_PASSWORD:}
+  promotion:
+    price-cents: ${PROMOTION_PRICE_CENTS:499}
+    days: ${PROMOTION_DAYS:7}
+  business:
+    price-cents: ${BUSINESS_PRICE_CENTS:1999}
+    days: ${BUSINESS_DAYS:30}
+  stripe:
+    secret-key: ${STRIPE_SECRET_KEY:}
+    webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
   geocoder:
     enabled: ${GEOCODER_ENABLED:true}
     url: ${GEOCODER_URL:https://nominatim.openstreetmap.org/search}

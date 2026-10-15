@@ -1,5 +1,7 @@
 package com.nimmda.application.admin;
 
+import com.nimmda.application.business.ListBusinessSubscriptionsService;
+import com.nimmda.application.promotion.ListPromotionPaymentsService;
 import com.nimmda.domain.listing.Listing;
 import com.nimmda.domain.listing.ListingRepository;
 import com.nimmda.domain.user.AccountMode;
@@ -16,10 +18,19 @@ public class AdminDirectoryService {
 
     private final UserRepository userRepository;
     private final ListingRepository listingRepository;
+    private final ListPromotionPaymentsService listPromotionPaymentsService;
+    private final ListBusinessSubscriptionsService listBusinessSubscriptionsService;
 
-    public AdminDirectoryService(UserRepository userRepository, ListingRepository listingRepository) {
+    public AdminDirectoryService(
+            UserRepository userRepository,
+            ListingRepository listingRepository,
+            ListPromotionPaymentsService listPromotionPaymentsService,
+            ListBusinessSubscriptionsService listBusinessSubscriptionsService
+    ) {
         this.userRepository = userRepository;
         this.listingRepository = listingRepository;
+        this.listPromotionPaymentsService = listPromotionPaymentsService;
+        this.listBusinessSubscriptionsService = listBusinessSubscriptionsService;
     }
 
     public AdminOverview overview() {
@@ -27,7 +38,9 @@ public class AdminDirectoryService {
         List<Listing> listings = listingRepository.findAll();
         long buyers = users.stream().filter(user -> user.accountMode() != AccountMode.SELLER).count();
         long sellers = users.stream().filter(user -> user.accountMode() != AccountMode.BUYER).count();
-        return new AdminOverview(buyers, sellers, listings.size(), 0, 0, 0);
+        long payments = listPromotionPaymentsService.execute().size();
+        long subscriptions = listBusinessSubscriptionsService.execute().size();
+        return new AdminOverview(buyers, sellers, listings.size(), payments, payments, subscriptions);
     }
 
     public List<AdminUserView> users() {

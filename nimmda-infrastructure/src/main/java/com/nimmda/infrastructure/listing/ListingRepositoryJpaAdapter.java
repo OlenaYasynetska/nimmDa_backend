@@ -12,14 +12,18 @@ import com.nimmda.domain.listing.Location;
 import com.nimmda.domain.listing.Money;
 import com.nimmda.domain.geo.GeoCoordinates;
 import com.nimmda.domain.shared.UserId;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Order;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -49,10 +53,9 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
         ListingSearch criteria = search == null ? ListingSearch.allPublished() : search;
         int safePage = Math.max(page, 0);
         int safeSize = size < 1 ? 20 : size;
-        Sort sort = criteria.sort() == ListingSort.DISTANCE ? Sort.unsorted() : sortOf(criteria.sort());
         var result = jpaRepository.findAll(
                 publishedSpec(criteria),
-                PageRequest.of(safePage, safeSize, sort)
+                PageRequest.of(safePage, safeSize, Sort.unsorted())
         );
         return new ListingSearchResult(
                 result.getContent().stream().map(this::toDomain).toList(),
@@ -109,25 +112,51 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
                     predicates.add(cb.le(distanceKm, search.radiusKm().doubleValue()));
                 }
             }
-            if (distanceKm != null && search.sort() == ListingSort.DISTANCE && !isCountQuery(query)) {
-                query.orderBy(cb.asc(distanceKm), cb.desc(root.get("createdAt")));
+            if (query != null && !isCountQuery(query)) {
+                query.orderBy(orderOf(cb, root, search.sort(), distanceKm));
             }
             return cb.and(predicates.toArray(Predicate[]::new));
         };
     }
 
-    private static boolean isCountQuery(jakarta.persistence.criteria.CriteriaQuery<?> query) {
-        return query.getResultType() == Long.class || query.getResultType() == long.class;
+    private static List<Order> orderOf(
+            CriteriaBuilder cb,
+            Root<ListingJpaEntity> root,
+            ListingSort sort,
+            Expression<Double> distanceKm
+    ) {
+        List<Order> orders = new ArrayList<>();
+        Expression<Integer> promotedFirst = cb.<Integer>selectCase()
+                .when(cb.and(
+                        cb.isNotNull(root.get("promotedUntil")),
+                        cb.greaterThan(root.<Instant>get("promotedUntil"), Instant.now())
+                ), Integer.valueOf(0))
+                .otherwise(Integer.valueOf(1));
+        orders.add(cb.asc(promotedFirst));
+        ListingSort safe = sort == null ? ListingSort.NEWEST : sort;
+        switch (safe) {
+            case PRICE_ASC -> {
+                orders.add(cb.asc(root.get("price")));
+                orders.add(cb.desc(root.get("createdAt")));
+            }
+            case PRICE_DESC -> {
+                orders.add(cb.desc(root.get("price")));
+                orders.add(cb.desc(root.get("createdAt")));
+            }
+            case OLDEST -> orders.add(cb.asc(root.get("createdAt")));
+            case DISTANCE -> {
+                if (distanceKm != null) {
+                    orders.add(cb.asc(distanceKm));
+                }
+                orders.add(cb.desc(root.get("createdAt")));
+            }
+            case NEWEST -> orders.add(cb.desc(root.get("createdAt")));
+        }
+        return orders;
     }
 
-    private static Sort sortOf(ListingSort sort) {
-        ListingSort safe = sort == null ? ListingSort.NEWEST : sort;
-        return switch (safe) {
-            case PRICE_ASC -> Sort.by(Sort.Order.asc("price"), Sort.Order.desc("createdAt"));
-            case PRICE_DESC -> Sort.by(Sort.Order.desc("price"), Sort.Order.desc("createdAt"));
-            case OLDEST -> Sort.by(Sort.Order.asc("createdAt"));
-            case DISTANCE, NEWEST -> Sort.by(Sort.Order.desc("createdAt"));
-        };
+    private static boolean isCountQuery(jakarta.persistence.criteria.CriteriaQuery<?> query) {
+        return query.getResultType() == Long.class || query.getResultType() == long.class;
     }
 
     private ListingJpaEntity toEntity(Listing listing) {
@@ -147,6 +176,7 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
         entity.setChats(listing.chats());
         entity.setCreatedAt(listing.createdAt());
         entity.setUpdatedAt(listing.updatedAt());
+        entity.setPromotedUntil(listing.promotedUntil());
         return entity;
     }
 
@@ -163,7 +193,8 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
                 entity.getViews(),
                 entity.getChats(),
                 entity.getCreatedAt(),
-                entity.getUpdatedAt()
+                entity.getUpdatedAt(),
+                entity.getPromotedUntil()
         );
     }
 

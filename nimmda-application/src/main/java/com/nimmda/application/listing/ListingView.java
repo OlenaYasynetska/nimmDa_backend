@@ -14,6 +14,8 @@ public record ListingView(
         String status,
         int views,
         int chats,
-        Instant createdAt
+        Instant createdAt,
+        Instant promotedUntil,
+        boolean promoted
 ) {
 }

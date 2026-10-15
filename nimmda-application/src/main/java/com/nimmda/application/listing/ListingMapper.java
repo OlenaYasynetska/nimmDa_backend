@@ -2,12 +2,15 @@ package com.nimmda.application.listing;
 
 import com.nimmda.domain.listing.Listing;
 
+import java.time.Instant;
+
 public final class ListingMapper {
 
     private ListingMapper() {
     }
 
     public static ListingView toView(Listing listing) {
+        Instant now = Instant.now();
         return new ListingView(
                 listing.id().value(),
                 listing.sellerId().value(),
@@ -19,7 +22,9 @@ public final class ListingMapper {
                 listing.status().name(),
                 listing.views(),
                 listing.chats(),
-                listing.createdAt()
+                listing.createdAt(),
+                listing.promotedUntil(),
+                listing.isPromoted(now)
         );
     }
 }

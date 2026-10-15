@@ -2,6 +2,7 @@ package com.nimmda.web.error;
 
 import com.nimmda.application.auth.AuthException;
 import com.nimmda.application.listing.ListingNotFoundException;
+import com.nimmda.application.promotion.PromotionException;
 import com.nimmda.application.messaging.ConversationNotFoundException;
 import com.nimmda.application.place.PlaceNotResolvedException;
 import com.nimmda.application.security.ForbiddenActionException;
@@ -71,6 +72,17 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI(), null, null);
+    }
+
+    @ExceptionHandler(PromotionException.class)
+    public ResponseEntity<ApiErrorResponse> handlePromotion(PromotionException ex, HttpServletRequest request) {
+        HttpStatus status = switch (ex.code()) {
+            case "notFound" -> HttpStatus.NOT_FOUND;
+            case "notActive" -> HttpStatus.CONFLICT;
+            case "unavailable" -> HttpStatus.SERVICE_UNAVAILABLE;
+            default -> HttpStatus.BAD_REQUEST;
+        };
+        return build(status, ex.getMessage(), request.getRequestURI(), ex.code(), null);
     }
 
     @ExceptionHandler(ForbiddenActionException.class)

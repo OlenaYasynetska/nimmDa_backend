@@ -19,6 +19,7 @@ public final class Listing {
     private int chats;
     private final Instant createdAt;
     private Instant updatedAt;
+    private Instant promotedUntil;
 
     private Listing(
             ListingId id,
@@ -32,7 +33,8 @@ public final class Listing {
             int views,
             int chats,
             Instant createdAt,
-            Instant updatedAt
+            Instant updatedAt,
+            Instant promotedUntil
     ) {
         this.id = Objects.requireNonNull(id);
         this.sellerId = Objects.requireNonNull(sellerId);
@@ -46,6 +48,7 @@ public final class Listing {
         this.chats = requireNonNegative(chats, "chats");
         this.createdAt = Objects.requireNonNull(createdAt);
         this.updatedAt = Objects.requireNonNull(updatedAt);
+        this.promotedUntil = promotedUntil;
     }
 
     public static Listing publishNew(
@@ -69,7 +72,8 @@ public final class Listing {
                 0,
                 0,
                 now,
-                now
+                now,
+                null
         );
     }
 
@@ -85,7 +89,8 @@ public final class Listing {
             int views,
             int chats,
             Instant createdAt,
-            Instant updatedAt
+            Instant updatedAt,
+            Instant promotedUntil
     ) {
         return new Listing(
                 id,
@@ -99,8 +104,22 @@ public final class Listing {
                 views,
                 chats,
                 createdAt,
-                updatedAt
+                updatedAt,
+                promotedUntil
         );
+    }
+
+    public void markPromotedUntil(Instant until) {
+        Objects.requireNonNull(until, "promotedUntil must not be null");
+        if (!until.isAfter(Instant.now())) {
+            throw new IllegalArgumentException("promotedUntil must be in the future");
+        }
+        this.promotedUntil = until;
+        this.updatedAt = Instant.now();
+    }
+
+    public boolean isPromoted(Instant now) {
+        return promotedUntil != null && promotedUntil.isAfter(now);
     }
 
     public void pause() {
@@ -190,6 +209,10 @@ public final class Listing {
 
     public Instant updatedAt() {
         return updatedAt;
+    }
+
+    public Instant promotedUntil() {
+        return promotedUntil;
     }
 
     private static String requireTitle(String title) {
