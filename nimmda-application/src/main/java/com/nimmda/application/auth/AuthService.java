@@ -223,10 +223,6 @@ public class AuthService implements
         if (mailSender.configured() && !exposeDevLinks) {
             throw new AuthException("mailFailed");
         }
-        if (type == AuthTokenType.VERIFY && !user.emailVerified()) {
-            user.verifyEmail();
-            userRepository.save(user);
-        }
         return new RegisterUserResult(false);
     }
 

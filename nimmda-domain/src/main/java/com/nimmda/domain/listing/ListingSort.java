@@ -5,7 +5,9 @@ public enum ListingSort {
     OLDEST,
     PRICE_ASC,
     PRICE_DESC,
-    DISTANCE;
+    DISTANCE,
+    /** Newest by posting time, without lifting promoted listings. */
+    POSTED;
 
     public static ListingSort from(String value) {
         if (value == null || value.isBlank()) {
@@ -16,6 +18,7 @@ public enum ListingSort {
             case "price_asc" -> PRICE_ASC;
             case "price_desc" -> PRICE_DESC;
             case "distance", "naehe", "nähe" -> DISTANCE;
+            case "posted" -> POSTED;
             default -> NEWEST;
         };
     }

@@ -126,14 +126,16 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
             Expression<Double> distanceKm
     ) {
         List<Order> orders = new ArrayList<>();
-        Expression<Integer> promotedFirst = cb.<Integer>selectCase()
-                .when(cb.and(
-                        cb.isNotNull(root.get("promotedUntil")),
-                        cb.greaterThan(root.<Instant>get("promotedUntil"), Instant.now())
-                ), Integer.valueOf(0))
-                .otherwise(Integer.valueOf(1));
-        orders.add(cb.asc(promotedFirst));
         ListingSort safe = sort == null ? ListingSort.NEWEST : sort;
+        if (safe != ListingSort.POSTED) {
+            Expression<Integer> promotedFirst = cb.<Integer>selectCase()
+                    .when(cb.and(
+                            cb.isNotNull(root.get("promotedUntil")),
+                            cb.greaterThan(root.<Instant>get("promotedUntil"), Instant.now())
+                    ), Integer.valueOf(0))
+                    .otherwise(Integer.valueOf(1));
+            orders.add(cb.asc(promotedFirst));
+        }
         switch (safe) {
             case PRICE_ASC -> {
                 orders.add(cb.asc(root.get("price")));
@@ -150,7 +152,7 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
                 }
                 orders.add(cb.desc(root.get("createdAt")));
             }
-            case NEWEST -> orders.add(cb.desc(root.get("createdAt")));
+            case NEWEST, POSTED -> orders.add(cb.desc(root.get("createdAt")));
         }
         return orders;
     }
