@@ -10,6 +10,7 @@ public record ListingView(
         BigDecimal price,
         String category,
         String location,
+        String description,
         String imageSrc,
         String status,
         int views,

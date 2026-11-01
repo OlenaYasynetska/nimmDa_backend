@@ -18,6 +18,7 @@ public final class ListingMapper {
                 listing.price().amount(),
                 listing.category().name(),
                 listing.location().city(),
+                listing.description(),
                 listing.imageSrc(),
                 listing.status().name(),
                 listing.views(),

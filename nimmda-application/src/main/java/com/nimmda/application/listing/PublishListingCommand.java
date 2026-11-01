@@ -8,6 +8,7 @@ public record PublishListingCommand(
         BigDecimal price,
         String category,
         String location,
-        String imageSrc
+        String imageSrc,
+        String description
 ) {
 }

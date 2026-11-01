@@ -14,6 +14,7 @@ public final class Listing {
     private Category category;
     private Location location;
     private String imageSrc;
+    private String description;
     private ListingStatus status;
     private int views;
     private int chats;
@@ -29,6 +30,7 @@ public final class Listing {
             Category category,
             Location location,
             String imageSrc,
+            String description,
             ListingStatus status,
             int views,
             int chats,
@@ -43,6 +45,7 @@ public final class Listing {
         this.category = Objects.requireNonNull(category);
         this.location = Objects.requireNonNull(location);
         this.imageSrc = requireImage(imageSrc);
+        this.description = normalizeDescription(description);
         this.status = Objects.requireNonNull(status);
         this.views = requireNonNegative(views, "views");
         this.chats = requireNonNegative(chats, "chats");
@@ -57,7 +60,8 @@ public final class Listing {
             Money price,
             Category category,
             Location location,
-            String imageSrc
+            String imageSrc,
+            String description
     ) {
         Instant now = Instant.now();
         return new Listing(
@@ -68,6 +72,7 @@ public final class Listing {
                 category,
                 location,
                 imageSrc,
+                description,
                 ListingStatus.ACTIVE,
                 0,
                 0,
@@ -85,6 +90,7 @@ public final class Listing {
             Category category,
             Location location,
             String imageSrc,
+            String description,
             ListingStatus status,
             int views,
             int chats,
@@ -100,6 +106,7 @@ public final class Listing {
                 category,
                 location,
                 imageSrc,
+                description,
                 status,
                 views,
                 chats,
@@ -137,7 +144,8 @@ public final class Listing {
             Money price,
             Category category,
             Location location,
-            String imageSrc
+            String imageSrc,
+            String description
     ) {
         this.title = requireTitle(title);
         this.price = Objects.requireNonNull(price);
@@ -146,6 +154,7 @@ public final class Listing {
         if (imageSrc != null && !imageSrc.isBlank()) {
             this.imageSrc = requireImage(imageSrc);
         }
+        this.description = normalizeDescription(description);
         this.updatedAt = Instant.now();
     }
 
@@ -191,6 +200,10 @@ public final class Listing {
         return imageSrc;
     }
 
+    public String description() {
+        return description;
+    }
+
     public ListingStatus status() {
         return status;
     }
@@ -220,6 +233,17 @@ public final class Listing {
         String normalized = title.trim();
         if (normalized.isBlank()) {
             throw new IllegalArgumentException("title must not be blank");
+        }
+        return normalized;
+    }
+
+    private static String normalizeDescription(String description) {
+        if (description == null) {
+            return "";
+        }
+        String normalized = description.trim();
+        if (normalized.length() > 4000) {
+            throw new IllegalArgumentException("description must be at most 4000 characters");
         }
         return normalized;
     }

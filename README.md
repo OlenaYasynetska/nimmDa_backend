@@ -3,7 +3,7 @@
 Java 21 / Spring Boot 3.2.5. **DDD + Clean Architecture + Hexagonal.**
 
 `nimmda-web` only maps HTTP. Driven adapters live in `nimmda-infrastructure`.
-Public site: [https://www.nimmda.org](https://www.nimmda.org) and [https://nimmda.org](https://nimmda.org). Production variables are set on Railway (see `.env.example`).
+Public site: [https://www.nimmda.org](https://www.nimmda.org) and [https://nimmda.org](https://nimmda.org). Public API: [https://api.nimmda.org/api](https://api.nimmda.org/api). Production variables are set on Railway (see `.env.example`).
 
 ## Modules
 
@@ -90,6 +90,7 @@ JWT is a Bearer token. Anything under `/api/**` that is not listed as public req
 | `POST` | `/api/auth/verify` | public | MySQL (activate, no JWT) |
 | `GET` | `/api/auth/verify-email` | public | MySQL (activate, no JWT) |
 | `POST` | `/api/auth/forgot-password` | public | MySQL + mail |
+| `POST` | `/api/auth/password-change` | JWT | MySQL + mail. Link an die E-Mail des angemeldeten Kontos |
 | `POST` | `/api/auth/reset-password` | public | MySQL |
 | `POST` | `/api/auth/resend-verification` | public | MySQL + mail |
 | `GET` | `/api/listings` | public | MySQL. Query: `q`, `category`, `location`, `minPrice`, `maxPrice`, `sort`, `free`, `km`, `page`, `size` |

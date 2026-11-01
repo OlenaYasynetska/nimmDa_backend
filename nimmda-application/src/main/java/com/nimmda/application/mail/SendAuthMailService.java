@@ -22,10 +22,10 @@ public class SendAuthMailService implements SendAuthMailUseCase {
     public boolean execute(SendAuthMailCommand command) {
         String type = requireType(command.type());
         boolean reset = "reset".equals(type);
-        String subject = reset ? "NimmDa: Passwort zurücksetzen" : "NimmDa: E-Mail bestätigen";
-        String action = reset ? "Passwort zurücksetzen" : "E-Mail bestätigen";
+        String subject = reset ? "NimmDa: Passwort ändern" : "NimmDa: E-Mail bestätigen";
+        String action = reset ? "Passwort ändern" : "E-Mail bestätigen";
         String intro = reset
-                ? "Du hast eine Zurücksetzung deines Passworts angefordert."
+                ? "Du hast einen Link zum Ändern deines Passworts angefordert. Er gilt eine Stunde."
                 : "Willkommen bei NimmDa. Bitte bestätige deine E-Mail, um dein Konto zu aktivieren.";
         String html = """
                 <div style="font-family:sans-serif;line-height:1.5;color:#1b3a5f">

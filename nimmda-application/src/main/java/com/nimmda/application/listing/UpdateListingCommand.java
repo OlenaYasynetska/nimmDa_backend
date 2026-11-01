@@ -10,6 +10,7 @@ public record UpdateListingCommand(
         String category,
         String location,
         String imageSrc,
+        String description,
         String status
 ) {
 }

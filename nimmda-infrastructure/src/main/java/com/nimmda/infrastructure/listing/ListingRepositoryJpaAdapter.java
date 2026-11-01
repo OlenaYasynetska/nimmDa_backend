@@ -171,6 +171,7 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
         entity.setLatitude(coordinates == null ? null : BigDecimal.valueOf(coordinates.latitude()));
         entity.setLongitude(coordinates == null ? null : BigDecimal.valueOf(coordinates.longitude()));
         entity.setImageSrc(listing.imageSrc());
+        entity.setDescription(listing.description().isBlank() ? null : listing.description());
         entity.setStatus(ListingJpaStatus.valueOf(listing.status().name()));
         entity.setViews(listing.views());
         entity.setChats(listing.chats());
@@ -189,6 +190,7 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
                 new Category(entity.getCategory()),
                 new Location(entity.getLocation(), toCoordinates(entity.getLatitude(), entity.getLongitude())),
                 entity.getImageSrc(),
+                entity.getDescription(),
                 ListingStatus.valueOf(entity.getStatus().name()),
                 entity.getViews(),
                 entity.getChats(),

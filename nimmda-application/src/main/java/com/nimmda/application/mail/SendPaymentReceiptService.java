@@ -2,8 +2,6 @@ package com.nimmda.application.mail;
 
 import com.nimmda.application.port.mail.MailMessage;
 import com.nimmda.application.port.mail.MailSender;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -11,11 +9,12 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.logging.Logger;
 
 @Service
 public class SendPaymentReceiptService {
 
-    private static final Logger log = LoggerFactory.getLogger(SendPaymentReceiptService.class);
+    private static final Logger log = Logger.getLogger(SendPaymentReceiptService.class.getName());
     private static final ZoneId VIENNA = ZoneId.of("Europe/Vienna");
     private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMAN);
 
@@ -47,11 +46,11 @@ public class SendPaymentReceiptService {
             String receiptNumber
     ) {
         if (to == null || to.isBlank()) {
-            log.warn("Payment receipt skipped, no recipient for {}", receiptNumber);
+            log.warning("Payment receipt skipped, no recipient for " + receiptNumber);
             return;
         }
         if (!mailSender.configured()) {
-            log.warn("Payment receipt not sent for {}: mail is not configured", receiptNumber);
+            log.warning("Payment receipt not sent for " + receiptNumber + ": mail is not configured");
             return;
         }
         String subject = "NimmDa: Zahlungsbeleg " + productName;
@@ -83,10 +82,10 @@ public class SendPaymentReceiptService {
         try {
             boolean sent = mailSender.send(new MailMessage(to.trim(), subject, html));
             if (!sent) {
-                log.warn("Payment receipt was not delivered to {} for {}", to, receiptNumber);
+                log.warning("Payment receipt was not delivered to " + to + " for " + receiptNumber);
             }
         } catch (RuntimeException ex) {
-            log.error("Payment receipt failed for {}: {}", receiptNumber, ex.getMessage());
+            log.severe("Payment receipt failed for " + receiptNumber + ": " + ex.getMessage());
         }
     }
 

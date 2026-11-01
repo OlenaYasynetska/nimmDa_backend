@@ -44,6 +44,9 @@ public class ListingJpaEntity {
     @Column(name = "image_src", nullable = false, columnDefinition = "MEDIUMTEXT")
     private String imageSrc;
 
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
+
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(name = "status", nullable = false, length = 32)
@@ -134,6 +137,14 @@ public class ListingJpaEntity {
 
     public void setImageSrc(String imageSrc) {
         this.imageSrc = imageSrc;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public ListingJpaStatus getStatus() {

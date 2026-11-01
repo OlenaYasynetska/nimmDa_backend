@@ -7,6 +7,7 @@ import com.nimmda.application.port.mail.MailSender;
 import com.nimmda.application.port.security.AccessTokenIssuer;
 import com.nimmda.application.port.security.IssuedAccessToken;
 import com.nimmda.application.port.security.PasswordHasher;
+import com.nimmda.domain.shared.UserId;
 import com.nimmda.domain.user.AuthToken;
 import com.nimmda.domain.user.AuthTokenRepository;
 import com.nimmda.domain.user.AuthTokenType;
@@ -157,6 +158,18 @@ public class AuthService implements
         if (user == null) {
             return new RegisterUserResult(true);
         }
+        return issueMail(user, AuthTokenType.RESET);
+    }
+
+    @Override
+    @Transactional
+    public RegisterUserResult requestResetForCurrentUser(String userId) {
+        if (CodedAdmin.isId(userId)) {
+            throw new AuthException("invalid");
+        }
+        User user = userRepository
+                .findById(new UserId(userId))
+                .orElseThrow(() -> new AuthException("notFound"));
         return issueMail(user, AuthTokenType.RESET);
     }
 

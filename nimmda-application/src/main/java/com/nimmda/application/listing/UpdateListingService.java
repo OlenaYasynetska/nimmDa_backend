@@ -37,7 +37,8 @@ public class UpdateListingService implements UpdateListingUseCase {
                 Money.of(command.price()),
                 new Category(command.category()),
                 new Location(place.name(), place.coordinates()),
-                command.imageSrc()
+                command.imageSrc(),
+                command.description()
         );
         applyStatus(listing, command.status());
         return ListingMapper.toView(listingRepository.save(listing));

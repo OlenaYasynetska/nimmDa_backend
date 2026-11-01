@@ -29,7 +29,7 @@ public class ListingPromotionJpaEntity {
     @Column(name = "amount_cents", nullable = false)
     private int amountCents;
 
-    @Column(name = "currency", nullable = false, length = 3)
+    @Column(name = "currency", nullable = false, columnDefinition = "CHAR(3)")
     private String currency;
 
     @Column(name = "days", nullable = false)

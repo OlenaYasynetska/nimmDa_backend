@@ -34,7 +34,8 @@ public class PublishListingService implements PublishListingUseCase {
                 Money.of(command.price()),
                 new Category(command.category()),
                 new Location(place.name(), place.coordinates()),
-                blankToDefault(command.imageSrc(), DEFAULT_IMAGE)
+                blankToDefault(command.imageSrc(), DEFAULT_IMAGE),
+                command.description()
         );
         return ListingMapper.toView(listingRepository.save(listing));
     }

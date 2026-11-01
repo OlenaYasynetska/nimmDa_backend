@@ -12,8 +12,10 @@ import com.nimmda.application.auth.ResendVerificationUseCase;
 import com.nimmda.application.auth.ResetPasswordCommand;
 import com.nimmda.application.auth.ResetPasswordUseCase;
 import com.nimmda.application.auth.VerifyEmailUseCase;
+import com.nimmda.web.security.AuthenticatedUser;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -78,6 +80,14 @@ public class AuthController {
     @PostMapping("/forgot-password")
     public RegisterResponse forgotPassword(@Valid @RequestBody EmailRequest request) {
         RegisterUserResult result = requestPasswordResetUseCase.requestReset(request.email());
+        return new RegisterResponse(result.mailSent());
+    }
+
+    @PostMapping("/password-change")
+    public RegisterResponse requestPasswordChange(Authentication authentication) {
+        RegisterUserResult result = requestPasswordResetUseCase.requestResetForCurrentUser(
+                AuthenticatedUser.id(authentication)
+        );
         return new RegisterResponse(result.mailSent());
     }
 
