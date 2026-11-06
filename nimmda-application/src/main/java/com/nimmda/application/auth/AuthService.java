@@ -86,11 +86,12 @@ public class AuthService implements
             throw new AuthException("exists");
         }
         String hash = passwordHasher.hash(command.password());
+        String name = displayName(command.name());
         if (user == null) {
-            NameParts names = namesFromEmail(email);
-            user = User.register(email, hash, names.firstName(), names.lastName());
+            user = User.register(email, hash, name, "");
         } else {
             user.replacePassword(hash);
+            user.rename(name);
         }
         userRepository.save(user);
         return issueMail(user, AuthTokenType.VERIFY);
@@ -250,27 +251,14 @@ public class AuthService implements
         }
     }
 
-    private static NameParts namesFromEmail(String email) {
-        String local = email.split("@")[0];
-        if (local == null || local.isBlank()) {
-            return new NameParts("Mitglied", "");
+    private static String displayName(String raw) {
+        if (raw == null) {
+            throw new IllegalArgumentException("name must not be blank");
         }
-        String[] parts = local.split("[._-]+");
-        String first = capitalize(parts[0]);
-        String last = parts.length > 1
-                ? capitalize(String.join(" ", java.util.Arrays.copyOfRange(parts, 1, parts.length)))
-                : "";
-        return new NameParts(first.isBlank() ? "Mitglied" : first, last);
-    }
-
-    private static String capitalize(String value) {
-        if (value == null || value.isBlank()) {
-            return "";
+        String name = raw.trim().replaceAll("\\s+", " ");
+        if (name.isBlank() || name.length() > 64) {
+            throw new IllegalArgumentException("name must not be blank");
         }
-        String lower = value.toLowerCase(Locale.ROOT);
-        return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
-    }
-
-    private record NameParts(String firstName, String lastName) {
+        return name;
     }
 }

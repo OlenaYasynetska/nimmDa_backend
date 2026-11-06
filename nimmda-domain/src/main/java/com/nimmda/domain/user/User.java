@@ -116,6 +116,12 @@ public final class User {
         this.updatedAt = Instant.now();
     }
 
+    public void rename(String displayName) {
+        this.firstName = requireName(displayName, "name");
+        this.lastName = "";
+        this.updatedAt = Instant.now();
+    }
+
     public UserId id() {
         return id;
     }

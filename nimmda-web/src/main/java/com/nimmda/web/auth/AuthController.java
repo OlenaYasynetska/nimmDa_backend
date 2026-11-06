@@ -55,7 +55,7 @@ public class AuthController {
     @ResponseStatus(HttpStatus.CREATED)
     public RegisterResponse register(@Valid @RequestBody RegisterRequest request) {
         RegisterUserResult result = registerUserUseCase.register(
-                new RegisterUserCommand(request.email(), request.password())
+                new RegisterUserCommand(request.email(), request.password(), request.name())
         );
         return new RegisterResponse(result.mailSent());
     }
