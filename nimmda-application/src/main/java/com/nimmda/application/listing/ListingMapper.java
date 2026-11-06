@@ -20,6 +20,7 @@ public final class ListingMapper {
                 listing.location().city(),
                 listing.description(),
                 listing.imageSrc(),
+                listing.images(),
                 listing.status().name(),
                 listing.views(),
                 listing.chats(),

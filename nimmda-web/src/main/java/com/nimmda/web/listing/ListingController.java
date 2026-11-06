@@ -109,6 +109,7 @@ public class ListingController {
                 request.category(),
                 request.location(),
                 request.imageSrc(),
+                request.images(),
                 request.description()
         ));
     }
@@ -127,6 +128,7 @@ public class ListingController {
                 request.category(),
                 request.location(),
                 request.imageSrc(),
+                request.images(),
                 request.description(),
                 request.status()
         ));

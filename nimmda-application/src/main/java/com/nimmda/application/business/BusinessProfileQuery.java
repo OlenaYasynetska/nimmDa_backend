@@ -51,6 +51,7 @@ public class BusinessProfileQuery {
                         listing.title(),
                         listing.price().amount(),
                         listing.imageSrc(),
+                        listing.images(),
                         listing.category().name()
                 ))
                 .toList();

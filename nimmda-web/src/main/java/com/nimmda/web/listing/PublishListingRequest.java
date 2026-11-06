@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public record PublishListingRequest(
         @NotBlank String title,
@@ -13,6 +14,7 @@ public record PublishListingRequest(
         @NotBlank String category,
         @NotBlank String location,
         String imageSrc,
+        @Size(max = 5) List<String> images,
         @Size(max = 4000) String description
 ) {
 }

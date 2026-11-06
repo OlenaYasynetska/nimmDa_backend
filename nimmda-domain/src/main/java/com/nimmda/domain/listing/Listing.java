@@ -3,6 +3,8 @@ package com.nimmda.domain.listing;
 import com.nimmda.domain.shared.UserId;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public final class Listing {
@@ -14,6 +16,7 @@ public final class Listing {
     private Category category;
     private Location location;
     private String imageSrc;
+    private List<String> images;
     private String description;
     private ListingStatus status;
     private int views;
@@ -30,6 +33,7 @@ public final class Listing {
             Category category,
             Location location,
             String imageSrc,
+            List<String> images,
             String description,
             ListingStatus status,
             int views,
@@ -44,7 +48,9 @@ public final class Listing {
         this.price = Objects.requireNonNull(price);
         this.category = Objects.requireNonNull(category);
         this.location = Objects.requireNonNull(location);
-        this.imageSrc = requireImage(imageSrc);
+        List<String> normalizedImages = normalizeImages(images, imageSrc);
+        this.images = normalizedImages;
+        this.imageSrc = normalizedImages.get(0);
         this.description = normalizeDescription(description);
         this.status = Objects.requireNonNull(status);
         this.views = requireNonNegative(views, "views");
@@ -61,6 +67,7 @@ public final class Listing {
             Category category,
             Location location,
             String imageSrc,
+            List<String> images,
             String description
     ) {
         Instant now = Instant.now();
@@ -72,6 +79,7 @@ public final class Listing {
                 category,
                 location,
                 imageSrc,
+                images,
                 description,
                 ListingStatus.ACTIVE,
                 0,
@@ -90,6 +98,7 @@ public final class Listing {
             Category category,
             Location location,
             String imageSrc,
+            List<String> images,
             String description,
             ListingStatus status,
             int views,
@@ -106,6 +115,7 @@ public final class Listing {
                 category,
                 location,
                 imageSrc,
+                images,
                 description,
                 status,
                 views,
@@ -145,14 +155,17 @@ public final class Listing {
             Category category,
             Location location,
             String imageSrc,
+            List<String> images,
             String description
     ) {
         this.title = requireTitle(title);
         this.price = Objects.requireNonNull(price);
         this.category = Objects.requireNonNull(category);
         this.location = Objects.requireNonNull(location);
-        if (imageSrc != null && !imageSrc.isBlank()) {
-            this.imageSrc = requireImage(imageSrc);
+        if (images != null || (imageSrc != null && !imageSrc.isBlank())) {
+            List<String> normalizedImages = normalizeImages(images, imageSrc == null ? this.imageSrc : imageSrc);
+            this.images = normalizedImages;
+            this.imageSrc = normalizedImages.get(0);
         }
         this.description = normalizeDescription(description);
         this.updatedAt = Instant.now();
@@ -198,6 +211,10 @@ public final class Listing {
 
     public String imageSrc() {
         return imageSrc;
+    }
+
+    public List<String> images() {
+        return images;
     }
 
     public String description() {
@@ -246,6 +263,28 @@ public final class Listing {
             throw new IllegalArgumentException("description must be at most 4000 characters");
         }
         return normalized;
+    }
+
+    private static List<String> normalizeImages(List<String> images, String imageSrc) {
+        List<String> source = images == null ? List.of() : images;
+        if (source.size() > 5) {
+            throw new IllegalArgumentException("at most 5 photos");
+        }
+        List<String> cleaned = new ArrayList<>();
+        for (String image : source) {
+            if (image == null || image.isBlank()) {
+                continue;
+            }
+            String value = image.trim();
+            if (value.length() > 1_500_000) {
+                throw new IllegalArgumentException("photo is too large");
+            }
+            cleaned.add(value);
+        }
+        if (cleaned.isEmpty()) {
+            cleaned.add(requireImage(imageSrc));
+        }
+        return List.copyOf(cleaned);
     }
 
     private static String requireImage(String imageSrc) {

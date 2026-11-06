@@ -11,6 +11,7 @@ import com.nimmda.domain.place.Place;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Locale;
 
 @Service
@@ -38,6 +39,7 @@ public class UpdateListingService implements UpdateListingUseCase {
                 new Category(command.category()),
                 new Location(place.name(), place.coordinates()),
                 command.imageSrc(),
+                command.images() == null ? null : PublishListingService.photosOrDefault(command.images(), command.imageSrc()),
                 command.description()
         );
         applyStatus(listing, command.status());

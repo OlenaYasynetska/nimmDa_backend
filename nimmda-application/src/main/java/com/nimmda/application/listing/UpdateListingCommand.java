@@ -1,6 +1,7 @@
 package com.nimmda.application.listing;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public record UpdateListingCommand(
         String listingId,
@@ -10,6 +11,7 @@ public record UpdateListingCommand(
         String category,
         String location,
         String imageSrc,
+        List<String> images,
         String description,
         String status
 ) {

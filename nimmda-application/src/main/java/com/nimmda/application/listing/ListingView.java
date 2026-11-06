@@ -2,6 +2,7 @@ package com.nimmda.application.listing;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 public record ListingView(
         String id,
@@ -12,6 +13,7 @@ public record ListingView(
         String location,
         String description,
         String imageSrc,
+        List<String> images,
         String status,
         int views,
         int chats,

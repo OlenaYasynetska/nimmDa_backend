@@ -17,6 +17,9 @@ import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Order;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -31,6 +34,10 @@ import java.util.Optional;
 
 @Repository
 public class ListingRepositoryJpaAdapter implements ListingRepository {
+
+    private static final ObjectMapper IMAGES = new ObjectMapper();
+    private static final TypeReference<List<String>> IMAGE_LIST = new TypeReference<>() {
+    };
 
     private final SpringDataListingJpaRepository jpaRepository;
 
@@ -173,6 +180,7 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
         entity.setLatitude(coordinates == null ? null : BigDecimal.valueOf(coordinates.latitude()));
         entity.setLongitude(coordinates == null ? null : BigDecimal.valueOf(coordinates.longitude()));
         entity.setImageSrc(listing.imageSrc());
+        entity.setImages(writeImages(listing.images()));
         entity.setDescription(listing.description().isBlank() ? null : listing.description());
         entity.setStatus(ListingJpaStatus.valueOf(listing.status().name()));
         entity.setViews(listing.views());
@@ -181,6 +189,29 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
         entity.setUpdatedAt(listing.updatedAt());
         entity.setPromotedUntil(listing.promotedUntil());
         return entity;
+    }
+
+    private static String writeImages(List<String> images) {
+        try {
+            return IMAGES.writeValueAsString(images);
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException("photos could not be stored", exception);
+        }
+    }
+
+    private static List<String> readImages(String raw, String imageSrc) {
+        if (raw == null || raw.isBlank()) {
+            return imageSrc == null || imageSrc.isBlank() ? List.of() : List.of(imageSrc);
+        }
+        try {
+            List<String> parsed = IMAGES.readValue(raw, IMAGE_LIST);
+            if (parsed == null || parsed.isEmpty()) {
+                return imageSrc == null || imageSrc.isBlank() ? List.of() : List.of(imageSrc);
+            }
+            return parsed;
+        } catch (JsonProcessingException exception) {
+            return imageSrc == null || imageSrc.isBlank() ? List.of() : List.of(imageSrc);
+        }
     }
 
     private Listing toDomain(ListingJpaEntity entity) {
@@ -192,6 +223,7 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
                 new Category(entity.getCategory()),
                 new Location(entity.getLocation(), toCoordinates(entity.getLatitude(), entity.getLongitude())),
                 entity.getImageSrc(),
+                readImages(entity.getImages(), entity.getImageSrc()),
                 entity.getDescription(),
                 ListingStatus.valueOf(entity.getStatus().name()),
                 entity.getViews(),

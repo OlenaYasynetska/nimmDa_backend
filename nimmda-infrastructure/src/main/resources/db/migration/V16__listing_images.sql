@@ -1,0 +1,2 @@
+ALTER TABLE listings
+    ADD COLUMN images MEDIUMTEXT NULL;

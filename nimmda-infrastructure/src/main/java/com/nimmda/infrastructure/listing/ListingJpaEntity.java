@@ -44,6 +44,9 @@ public class ListingJpaEntity {
     @Column(name = "image_src", nullable = false, columnDefinition = "MEDIUMTEXT")
     private String imageSrc;
 
+    @Column(name = "images", columnDefinition = "MEDIUMTEXT")
+    private String images;
+
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
@@ -137,6 +140,14 @@ public class ListingJpaEntity {
 
     public void setImageSrc(String imageSrc) {
         this.imageSrc = imageSrc;
+    }
+
+    public String getImages() {
+        return images;
+    }
+
+    public void setImages(String images) {
+        this.images = images;
     }
 
     public String getDescription() {
