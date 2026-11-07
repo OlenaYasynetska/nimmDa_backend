@@ -43,6 +43,8 @@ public class BusinessProfileRepositoryJpaAdapter implements BusinessProfileRepos
         entity.setCompanyName(profile.companyName());
         entity.setTrade(profile.trade());
         entity.setLocation(profile.location());
+        entity.setStreet(profile.street());
+        entity.setPostalCode(profile.postalCode());
         entity.setPhone(profile.phone());
         entity.setActiveUntil(profile.activeUntil());
         entity.setCreatedAt(profile.createdAt());
@@ -56,6 +58,8 @@ public class BusinessProfileRepositoryJpaAdapter implements BusinessProfileRepos
                 entity.getCompanyName(),
                 entity.getTrade(),
                 entity.getLocation(),
+                entity.getStreet(),
+                entity.getPostalCode(),
                 entity.getPhone(),
                 entity.getActiveUntil(),
                 entity.getCreatedAt(),

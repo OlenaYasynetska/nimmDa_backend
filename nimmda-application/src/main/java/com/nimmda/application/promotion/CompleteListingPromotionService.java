@@ -61,6 +61,7 @@ public class CompleteListingPromotionService {
         sendPaymentReceiptService.send(
                 email,
                 name,
+                "",
                 "Top-Anzeige",
                 listing.title(),
                 paid.amountCents(),

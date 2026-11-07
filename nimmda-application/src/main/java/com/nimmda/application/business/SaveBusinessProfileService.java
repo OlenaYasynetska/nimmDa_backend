@@ -23,15 +23,17 @@ public class SaveBusinessProfileService {
             String companyName,
             String trade,
             String location,
+            String street,
+            String postalCode,
             String phone
     ) {
         UserId ownerId = new UserId(userId);
         BusinessProfile profile = profileRepository.findByUserId(ownerId)
                 .map(current -> {
-                    current.updateDetails(companyName, trade, location, phone);
+                    current.updateDetails(companyName, trade, location, street, postalCode, phone);
                     return current;
                 })
-                .orElseGet(() -> BusinessProfile.create(ownerId, companyName, trade, location, phone));
+                .orElseGet(() -> BusinessProfile.create(ownerId, companyName, trade, location, street, postalCode, phone));
         profileRepository.save(profile);
         return profileQuery.byUser(ownerId);
     }

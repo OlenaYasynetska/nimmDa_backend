@@ -60,6 +60,8 @@ public class BusinessProfileQuery {
                 profile.companyName(),
                 profile.trade(),
                 profile.location(),
+                profile.street(),
+                profile.postalCode(),
                 profile.phone(),
                 profile.isActive(now),
                 profile.activeUntil(),

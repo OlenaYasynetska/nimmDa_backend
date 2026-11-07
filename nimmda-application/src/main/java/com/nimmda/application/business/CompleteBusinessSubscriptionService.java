@@ -58,10 +58,10 @@ public class CompleteBusinessSubscriptionService {
         BusinessSubscription paid = subscriptionRepository.save(subscription);
         var buyer = userRepository.findById(paid.userId());
         String email = buyer.map(user -> user.email()).orElse("");
-        String name = buyer.map(user -> user.firstName()).orElse("");
         sendPaymentReceiptService.send(
                 email,
-                name,
+                profile.companyName(),
+                profile.invoiceAddress(),
                 "Profi-Profil",
                 profile.companyName(),
                 paid.amountCents(),

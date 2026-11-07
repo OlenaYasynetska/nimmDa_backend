@@ -1,0 +1,3 @@
+ALTER TABLE business_profiles
+    ADD COLUMN street VARCHAR(160) NOT NULL DEFAULT '',
+    ADD COLUMN postal_code VARCHAR(16) NOT NULL DEFAULT '';

@@ -38,6 +38,7 @@ public class SendPaymentReceiptService {
     public void send(
             String to,
             String buyerName,
+            String buyerAddress,
             String productName,
             String detail,
             int amountCents,
@@ -60,7 +61,7 @@ public class SendPaymentReceiptService {
                 <div style="font-family:Arial,sans-serif;line-height:1.45;color:#1b3a5f;max-width:640px">
                   <h1 style="font-size:22px;margin:0 0 16px">Rechnung</h1>
                   <p style="margin:0 0 16px">%s<br>%s<br>%s</p>
-                  <p style="margin:0 0 16px"><strong>Rechnungsempfänger</strong><br>%s<br>%s</p>
+                  <p style="margin:0 0 16px"><strong>Rechnungsempfänger</strong><br>%s</p>
                   <p style="margin:0 0 16px">
                     <strong>Rechnungsnummer:</strong> %s<br>
                     <strong>Rechnungsdatum:</strong> %s<br>
@@ -87,15 +88,14 @@ public class SendPaymentReceiptService {
                     </tbody>
                   </table>
                   <p style="margin:0 0 16px"><strong>Gesamtbetrag: %s</strong><br>Der Betrag wurde am %s vollständig bezahlt.</p>
-                  <p style="margin:0 0 16px">Umsatzsteuerbefreit – Kleinunternehmerin gemäß § 6 Abs. 1 Z 27 UStG. Es wird keine Umsatzsteuer ausgewiesen. Der Gesamtbetrag ist der Endbetrag.</p>
+                  <p style="margin:0 0 16px"><strong>Keine Umsatzsteuer.</strong> Die Rechnungsstellerin ist Kleinunternehmerin gemäß § 6 Abs. 1 Z 27 UStG und führt keine Umsatzsteuer ab. Der Gesamtbetrag ist der Endbetrag.</p>
                   <p style="color:#64748b;font-size:13px;margin:0">NimmDa · nimmda.org</p>
                 </div>
                 """.formatted(
                 escape(sellerName),
                 escape(sellerAddress),
                 escape(sellerEmail),
-                escape(buyerLine(buyerName)),
-                escape(to.trim()),
+                recipientBlock(buyerName, buyerAddress, to.trim()),
                 escape(number),
                 format(paidAt),
                 format(paidAt),
@@ -114,6 +114,19 @@ public class SendPaymentReceiptService {
         } catch (RuntimeException ex) {
             log.severe("Payment receipt failed for " + receiptNumber + ": " + ex.getMessage());
         }
+    }
+
+    private static String recipientBlock(String buyerName, String buyerAddress, String email) {
+        StringBuilder block = new StringBuilder(escape(buyerLine(buyerName)));
+        if (buyerAddress != null) {
+            for (String line : buyerAddress.split("\\R")) {
+                if (!line.isBlank()) {
+                    block.append("<br>").append(escape(line.trim()));
+                }
+            }
+        }
+        block.append("<br>").append(escape(email));
+        return block.toString();
     }
 
     private static String buyerLine(String buyerName) {

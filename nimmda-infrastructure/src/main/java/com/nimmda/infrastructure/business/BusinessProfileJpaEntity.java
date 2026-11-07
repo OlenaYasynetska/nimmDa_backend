@@ -24,6 +24,12 @@ public class BusinessProfileJpaEntity {
     @Column(name = "location", nullable = false, length = 128)
     private String location;
 
+    @Column(name = "street", nullable = false, length = 160)
+    private String street;
+
+    @Column(name = "postal_code", nullable = false, length = 16)
+    private String postalCode;
+
     @Column(name = "phone", nullable = false, length = 40)
     private String phone;
 
@@ -66,6 +72,22 @@ public class BusinessProfileJpaEntity {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public String getStreet() {
+        return street;
+    }
+
+    public void setStreet(String street) {
+        this.street = street;
+    }
+
+    public String getPostalCode() {
+        return postalCode;
+    }
+
+    public void setPostalCode(String postalCode) {
+        this.postalCode = postalCode;
     }
 
     public String getPhone() {

@@ -8,6 +8,8 @@ public record BusinessProfileView(
         String companyName,
         String trade,
         String location,
+        String street,
+        String postalCode,
         String phone,
         boolean active,
         Instant activeUntil,
