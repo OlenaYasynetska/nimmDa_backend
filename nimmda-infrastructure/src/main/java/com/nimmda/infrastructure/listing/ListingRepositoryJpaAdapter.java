@@ -142,6 +142,7 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
                     ), Integer.valueOf(0))
                     .otherwise(Integer.valueOf(1));
             orders.add(cb.asc(promotedFirst));
+            orders.add(cb.desc(root.get("promotedUntil")));
         }
         switch (safe) {
             case PRICE_ASC -> {
