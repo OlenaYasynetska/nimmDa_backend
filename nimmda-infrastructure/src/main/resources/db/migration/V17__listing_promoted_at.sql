@@ -1,5 +1,18 @@
-ALTER TABLE listings
-    ADD COLUMN promoted_at DATETIME(3) NULL;
+SET @ddl = IF (
+    (SELECT COUNT(*)
+     FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE()
+       AND TABLE_NAME = 'listings'
+       AND COLUMN_NAME = 'promoted_at') = 0,
+    'ALTER TABLE listings ADD COLUMN promoted_at DATETIME(3) NULL',
+    'SELECT 1'
+);
+
+PREPARE nimmda_stmt FROM @ddl;
+
+EXECUTE nimmda_stmt;
+
+DEALLOCATE PREPARE nimmda_stmt;
 
 UPDATE listings l
     JOIN (
