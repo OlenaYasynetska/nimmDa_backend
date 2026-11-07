@@ -22,17 +22,20 @@ public class SendPaymentReceiptService {
     private final String sellerName;
     private final String sellerAddress;
     private final String sellerEmail;
+    private final String copyTo;
 
     public SendPaymentReceiptService(
             MailSender mailSender,
             @Value("${app.invoice.seller-name:Olena Yasynetska}") String sellerName,
             @Value("${app.invoice.seller-address:Arbeiterstraße 26/3, 4400 Steyr, Österreich}") String sellerAddress,
-            @Value("${app.invoice.seller-email:contact@ugs-info.at}") String sellerEmail
+            @Value("${app.invoice.seller-email:contact@ugs-info.at}") String sellerEmail,
+            @Value("${app.invoice.copy-to:olenayasynetska8@gmail.com}") String copyTo
     ) {
         this.mailSender = mailSender;
         this.sellerName = sellerName;
         this.sellerAddress = sellerAddress;
         this.sellerEmail = sellerEmail;
+        this.copyTo = copyTo == null ? "" : copyTo.trim();
     }
 
     public void send(
@@ -47,7 +50,8 @@ public class SendPaymentReceiptService {
             Instant validUntil,
             String receiptNumber
     ) {
-        if (to == null || to.isBlank()) {
+        String customer = to == null ? "" : to.trim();
+        if (customer.isBlank() && copyTo.isBlank()) {
             log.warning("Payment receipt skipped, no recipient for " + receiptNumber);
             return;
         }
@@ -95,7 +99,7 @@ public class SendPaymentReceiptService {
                 escape(sellerName),
                 escape(sellerAddress),
                 escape(sellerEmail),
-                recipientBlock(buyerName, buyerAddress, to.trim()),
+                recipientBlock(buyerName, buyerAddress, customer.isBlank() ? copyTo : customer),
                 escape(number),
                 format(paidAt),
                 format(paidAt),
@@ -106,13 +110,22 @@ public class SendPaymentReceiptService {
                 formatEuro(amountCents),
                 format(paidAt)
         );
+        if (!customer.isBlank()) {
+            deliver(customer, subject, html, receiptNumber);
+        }
+        if (!copyTo.isBlank() && !copyTo.equalsIgnoreCase(customer)) {
+            deliver(copyTo, "Kopie: " + subject, html, receiptNumber);
+        }
+    }
+
+    private void deliver(String recipient, String subject, String html, String receiptNumber) {
         try {
-            boolean sent = mailSender.send(new MailMessage(to.trim(), subject, html));
+            boolean sent = mailSender.send(new MailMessage(recipient, subject, html));
             if (!sent) {
-                log.warning("Payment receipt was not delivered to " + to + " for " + receiptNumber);
+                log.warning("Payment receipt was not delivered to " + recipient + " for " + receiptNumber);
             }
         } catch (RuntimeException ex) {
-            log.severe("Payment receipt failed for " + receiptNumber + ": " + ex.getMessage());
+            log.severe("Payment receipt failed for " + receiptNumber + " to " + recipient + ": " + ex.getMessage());
         }
     }
 
