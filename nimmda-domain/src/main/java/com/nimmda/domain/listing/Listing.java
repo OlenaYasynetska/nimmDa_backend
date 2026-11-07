@@ -24,6 +24,7 @@ public final class Listing {
     private final Instant createdAt;
     private Instant updatedAt;
     private Instant promotedUntil;
+    private Instant promotedAt;
 
     private Listing(
             ListingId id,
@@ -40,7 +41,8 @@ public final class Listing {
             int chats,
             Instant createdAt,
             Instant updatedAt,
-            Instant promotedUntil
+            Instant promotedUntil,
+            Instant promotedAt
     ) {
         this.id = Objects.requireNonNull(id);
         this.sellerId = Objects.requireNonNull(sellerId);
@@ -58,6 +60,7 @@ public final class Listing {
         this.createdAt = Objects.requireNonNull(createdAt);
         this.updatedAt = Objects.requireNonNull(updatedAt);
         this.promotedUntil = promotedUntil;
+        this.promotedAt = promotedAt;
     }
 
     public static Listing publishNew(
@@ -86,6 +89,7 @@ public final class Listing {
                 0,
                 now,
                 now,
+                null,
                 null
         );
     }
@@ -105,7 +109,8 @@ public final class Listing {
             int chats,
             Instant createdAt,
             Instant updatedAt,
-            Instant promotedUntil
+            Instant promotedUntil,
+            Instant promotedAt
     ) {
         return new Listing(
                 id,
@@ -122,17 +127,20 @@ public final class Listing {
                 chats,
                 createdAt,
                 updatedAt,
-                promotedUntil
+                promotedUntil,
+                promotedAt
         );
     }
 
     public void markPromotedUntil(Instant until) {
         Objects.requireNonNull(until, "promotedUntil must not be null");
-        if (!until.isAfter(Instant.now())) {
+        Instant now = Instant.now();
+        if (!until.isAfter(now)) {
             throw new IllegalArgumentException("promotedUntil must be in the future");
         }
         this.promotedUntil = until;
-        this.updatedAt = Instant.now();
+        this.promotedAt = now;
+        this.updatedAt = now;
     }
 
     public boolean isPromoted(Instant now) {
@@ -243,6 +251,10 @@ public final class Listing {
 
     public Instant promotedUntil() {
         return promotedUntil;
+    }
+
+    public Instant promotedAt() {
+        return promotedAt;
     }
 
     private static String requireTitle(String title) {
