@@ -65,8 +65,6 @@ public class BusinessProfileController {
                 request.companyName(),
                 request.trade(),
                 request.location(),
-                request.street(),
-                request.postalCode(),
                 request.phone()
         );
     }
@@ -96,8 +94,6 @@ public class BusinessProfileController {
             @NotBlank @Size(max = 160) String companyName,
             @NotBlank @Size(max = 160) String trade,
             @NotBlank @Size(max = 128) String location,
-            @NotBlank @Size(max = 160) String street,
-            @NotBlank @Size(max = 16) @Pattern(regexp = "[0-9]{4}") String postalCode,
             @NotBlank @Size(max = 40) @Pattern(regexp = "[0-9+()\\-/\\s]{5,40}") String phone
     ) {
     }

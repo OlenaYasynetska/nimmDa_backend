@@ -61,7 +61,7 @@ public class CompleteBusinessSubscriptionService {
         sendPaymentReceiptService.send(
                 email,
                 profile.companyName(),
-                profile.invoiceAddress(),
+                profile.location() + "\nÖsterreich",
                 "Profi-Profil",
                 profile.companyName(),
                 paid.amountCents(),

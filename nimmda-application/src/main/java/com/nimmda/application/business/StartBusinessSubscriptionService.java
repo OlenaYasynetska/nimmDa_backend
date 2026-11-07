@@ -52,9 +52,6 @@ public class StartBusinessSubscriptionService {
         UserId ownerId = new UserId(userId);
         BusinessProfile profile = profileRepository.findByUserId(ownerId)
                 .orElseThrow(() -> new PromotionException("notFound", "Lege zuerst das Profi-Profil an."));
-        if (profile.street().isBlank() || profile.postalCode().isBlank()) {
-            throw new PromotionException("invalid", "Für die Rechnung fehlen Straße und Postleitzahl.");
-        }
         String email = userRepository.findById(ownerId)
                 .orElseThrow(() -> new PromotionException("notFound", "Konto wurde nicht gefunden."))
                 .email();
