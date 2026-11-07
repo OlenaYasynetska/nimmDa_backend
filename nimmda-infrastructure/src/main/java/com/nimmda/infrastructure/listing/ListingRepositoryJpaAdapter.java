@@ -142,13 +142,7 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
                     ), Integer.valueOf(0))
                     .otherwise(Integer.valueOf(1));
             orders.add(cb.asc(promotedFirst));
-            Expression<Instant> latestPayment = cb.<Instant>selectCase()
-                    .when(cb.and(
-                            cb.isNotNull(root.get("promotedUntil")),
-                            cb.greaterThan(root.<Instant>get("promotedUntil"), Instant.now())
-                    ), root.get("promotedAt"))
-                    .otherwise(cb.nullLiteral(Instant.class));
-            orders.add(cb.desc(latestPayment));
+            orders.add(cb.desc(root.get("promotedAt")));
         }
         switch (safe) {
             case PRICE_ASC -> {
