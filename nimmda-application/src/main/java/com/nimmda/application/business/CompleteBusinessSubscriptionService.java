@@ -56,9 +56,12 @@ public class CompleteBusinessSubscriptionService {
         profileRepository.save(profile);
         subscription.markPaid(now, until);
         BusinessSubscription paid = subscriptionRepository.save(subscription);
-        String email = userRepository.findById(paid.userId()).map(user -> user.email()).orElse("");
+        var buyer = userRepository.findById(paid.userId());
+        String email = buyer.map(user -> user.email()).orElse("");
+        String name = buyer.map(user -> user.firstName()).orElse("");
         sendPaymentReceiptService.send(
                 email,
+                name,
                 "Profi-Profil",
                 profile.companyName(),
                 paid.amountCents(),

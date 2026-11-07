@@ -55,9 +55,12 @@ public class CompleteListingPromotionService {
         listingRepository.save(listing);
         promotion.markPaid(now, until);
         ListingPromotion paid = promotionRepository.save(promotion);
-        String email = userRepository.findById(paid.sellerId()).map(user -> user.email()).orElse("");
+        var buyer = userRepository.findById(paid.sellerId());
+        String email = buyer.map(user -> user.email()).orElse("");
+        String name = buyer.map(user -> user.firstName()).orElse("");
         sendPaymentReceiptService.send(
                 email,
+                name,
                 "Top-Anzeige",
                 listing.title(),
                 paid.amountCents(),

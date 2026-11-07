@@ -37,6 +37,7 @@ public class SendPaymentReceiptService {
 
     public void send(
             String to,
+            String buyerName,
             String productName,
             String detail,
             int amountCents,
@@ -53,31 +54,57 @@ public class SendPaymentReceiptService {
             log.warning("Payment receipt not sent for " + receiptNumber + ": mail is not configured");
             return;
         }
-        String subject = "NimmDa: Zahlungsbeleg " + productName;
+        String number = receiptNumber == null ? "" : receiptNumber.trim();
+        String subject = "Rechnung " + number + " – NimmDa";
         String html = """
-                <div style="font-family:sans-serif;line-height:1.5;color:#1b3a5f">
-                  <h2>Zahlungsbeleg</h2>
-                  <p>%s<br>%s<br>%s</p>
-                  <p><strong>Belegnummer:</strong> %s<br>
-                  <strong>Datum:</strong> %s<br>
-                  <strong>Leistung:</strong> %s, %d Tage<br>
-                  <strong>Details:</strong> %s<br>
-                  <strong>Betrag:</strong> %s<br>
-                  <strong>Gültig bis:</strong> %s</p>
-                  <p>Kleinunternehmerin gemäß § 6 Abs. 1 Z 27 UStG. Es wird keine Umsatzsteuer ausgewiesen. Der genannte Betrag ist der Endbetrag.</p>
-                  <p style="color:#64748b;font-size:13px">Die Leistung beginnt erst nach erfolgreicher Zahlung und endet automatisch mit dem genannten Datum.</p>
+                <div style="font-family:Arial,sans-serif;line-height:1.45;color:#1b3a5f;max-width:640px">
+                  <h1 style="font-size:22px;margin:0 0 16px">Rechnung</h1>
+                  <p style="margin:0 0 16px">%s<br>%s<br>%s</p>
+                  <p style="margin:0 0 16px"><strong>Rechnungsempfänger</strong><br>%s<br>%s</p>
+                  <p style="margin:0 0 16px">
+                    <strong>Rechnungsnummer:</strong> %s<br>
+                    <strong>Rechnungsdatum:</strong> %s<br>
+                    <strong>Leistungszeitraum:</strong> %s bis %s
+                  </p>
+                  <table style="width:100%%;border-collapse:collapse;margin:0 0 16px">
+                    <thead>
+                      <tr>
+                        <th style="text-align:left;border-bottom:1px solid #cbd5e1;padding:6px 4px">Pos.</th>
+                        <th style="text-align:left;border-bottom:1px solid #cbd5e1;padding:6px 4px">Beschreibung</th>
+                        <th style="text-align:right;border-bottom:1px solid #cbd5e1;padding:6px 4px">Menge</th>
+                        <th style="text-align:right;border-bottom:1px solid #cbd5e1;padding:6px 4px">Einzelpreis</th>
+                        <th style="text-align:right;border-bottom:1px solid #cbd5e1;padding:6px 4px">Betrag</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style="padding:8px 4px;vertical-align:top">1</td>
+                        <td style="padding:8px 4px">%s</td>
+                        <td style="padding:8px 4px;text-align:right;vertical-align:top">1</td>
+                        <td style="padding:8px 4px;text-align:right;vertical-align:top">%s</td>
+                        <td style="padding:8px 4px;text-align:right;vertical-align:top">%s</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <p style="margin:0 0 16px"><strong>Gesamtbetrag: %s</strong><br>Der Betrag wurde am %s vollständig bezahlt.</p>
+                  <p style="margin:0 0 16px">Umsatzsteuerbefreit – Kleinunternehmerin gemäß § 6 Abs. 1 Z 27 UStG. Es wird keine Umsatzsteuer ausgewiesen. Der Gesamtbetrag ist der Endbetrag.</p>
+                  <p style="color:#64748b;font-size:13px;margin:0">NimmDa · nimmda.org</p>
                 </div>
                 """.formatted(
                 escape(sellerName),
                 escape(sellerAddress),
                 escape(sellerEmail),
-                escape(receiptNumber),
+                escape(buyerLine(buyerName)),
+                escape(to.trim()),
+                escape(number),
                 format(paidAt),
-                escape(productName),
-                days,
-                escape(detail),
+                format(paidAt),
+                format(validUntil),
+                escape(description(productName, detail, days)),
                 formatEuro(amountCents),
-                format(validUntil)
+                formatEuro(amountCents),
+                formatEuro(amountCents),
+                format(paidAt)
         );
         try {
             boolean sent = mailSender.send(new MailMessage(to.trim(), subject, html));
@@ -87,6 +114,20 @@ public class SendPaymentReceiptService {
         } catch (RuntimeException ex) {
             log.severe("Payment receipt failed for " + receiptNumber + ": " + ex.getMessage());
         }
+    }
+
+    private static String buyerLine(String buyerName) {
+        if (buyerName == null || buyerName.isBlank()) {
+            return "Kontoinhaber";
+        }
+        return buyerName.trim();
+    }
+
+    private static String description(String productName, String detail, int days) {
+        String product = productName == null || productName.isBlank() ? "Zusatzleistung" : productName.trim();
+        String reference = detail == null || detail.isBlank() ? "" : " „" + detail.trim() + "“";
+        int safeDays = Math.max(days, 1);
+        return product + reference + " auf nimmda.org, " + safeDays + " Tage";
     }
 
     private static String format(Instant instant) {
