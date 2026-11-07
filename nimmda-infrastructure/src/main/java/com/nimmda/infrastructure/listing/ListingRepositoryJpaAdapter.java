@@ -142,7 +142,6 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
                     ), Integer.valueOf(0))
                     .otherwise(Integer.valueOf(1));
             orders.add(cb.asc(promotedFirst));
-            orders.add(cb.desc(root.get("promotedAt")));
         }
         switch (safe) {
             case PRICE_ASC -> {
@@ -189,7 +188,6 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
         entity.setCreatedAt(listing.createdAt());
         entity.setUpdatedAt(listing.updatedAt());
         entity.setPromotedUntil(listing.promotedUntil());
-        entity.setPromotedAt(listing.promotedAt());
         return entity;
     }
 
@@ -232,8 +230,7 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
                 entity.getChats(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt(),
-                entity.getPromotedUntil(),
-                entity.getPromotedAt()
+                entity.getPromotedUntil()
         );
     }
 
