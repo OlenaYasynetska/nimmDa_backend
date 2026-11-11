@@ -14,12 +14,15 @@ EXECUTE nimmda_stmt;
 
 DEALLOCATE PREPARE nimmda_stmt;
 
+ALTER TABLE listing_promotions
+    CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 UPDATE listings l
     JOIN (
         SELECT listing_id, MAX(paid_at) AS paid_at
         FROM listing_promotions
         WHERE status = 'PAID' AND paid_at IS NOT NULL
         GROUP BY listing_id
-    ) p ON p.listing_id = l.id
+    ) p ON p.listing_id COLLATE utf8mb4_unicode_ci = l.id COLLATE utf8mb4_unicode_ci
 SET l.promoted_at = p.paid_at
 WHERE l.promoted_until IS NOT NULL;
