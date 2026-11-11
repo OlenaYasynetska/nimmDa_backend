@@ -45,6 +45,8 @@ logging:
     com.nimmda: DEBUG
 
 app:
+  api:
+    public-base-url: ${API_PUBLIC_BASE_URL:https://api.nimmda.org}
   frontend:
     base-url: ${FRONTEND_BASE_URL:http://localhost:4200}
   cors:

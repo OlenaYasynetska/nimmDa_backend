@@ -68,6 +68,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/payments/stripe/webhook").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/listings/mine").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/listings/*/photos/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/listings", "/api/listings/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/locations").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/homepage-banner").permitAll()

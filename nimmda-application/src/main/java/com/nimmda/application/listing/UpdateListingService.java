@@ -11,6 +11,7 @@ import com.nimmda.domain.place.Place;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -19,10 +20,16 @@ public class UpdateListingService implements UpdateListingUseCase {
 
     private final ListingRepository listingRepository;
     private final ResolvePlaceService resolvePlaceService;
+    private final ListingPhotoAddresses listingPhotoAddresses;
 
-    public UpdateListingService(ListingRepository listingRepository, ResolvePlaceService resolvePlaceService) {
+    public UpdateListingService(
+            ListingRepository listingRepository,
+            ResolvePlaceService resolvePlaceService,
+            ListingPhotoAddresses listingPhotoAddresses
+    ) {
         this.listingRepository = listingRepository;
         this.resolvePlaceService = resolvePlaceService;
+        this.listingPhotoAddresses = listingPhotoAddresses;
     }
 
     @Override
@@ -39,11 +46,27 @@ public class UpdateListingService implements UpdateListingUseCase {
                 new Category(command.category()),
                 new Location(place.name(), place.coordinates()),
                 command.imageSrc(),
-                command.images() == null ? null : PublishListingService.photosOrDefault(command.images(), command.imageSrc()),
+                command.images() == null
+                        ? null
+                        : keepStoredPhotos(listing, PublishListingService.photosOrDefault(command.images(), command.imageSrc())),
                 command.description()
         );
         applyStatus(listing, command.status());
         return ListingMapper.toView(listingRepository.save(listing));
+    }
+
+    private List<String> keepStoredPhotos(Listing listing, List<String> incoming) {
+        List<String> stored = listing.images();
+        List<String> resolved = new ArrayList<>(incoming.size());
+        for (String value : incoming) {
+            Integer index = listingPhotoAddresses.storedIndex(listing.id().value(), value);
+            if (index != null && index >= 0 && index < stored.size()) {
+                resolved.add(stored.get(index));
+                continue;
+            }
+            resolved.add(value);
+        }
+        return resolved;
     }
 
     private static void applyStatus(Listing listing, String status) {

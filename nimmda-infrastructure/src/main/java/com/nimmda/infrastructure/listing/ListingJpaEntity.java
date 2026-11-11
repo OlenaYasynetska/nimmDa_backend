@@ -70,6 +70,9 @@ public class ListingJpaEntity {
     @Column(name = "promoted_until")
     private Instant promotedUntil;
 
+    @Column(name = "photo_count", nullable = false)
+    private int photoCount = 1;
+
     public String getId() {
         return id;
     }
@@ -204,5 +207,13 @@ public class ListingJpaEntity {
 
     public void setPromotedUntil(Instant promotedUntil) {
         this.promotedUntil = promotedUntil;
+    }
+
+    public int getPhotoCount() {
+        return photoCount;
+    }
+
+    public void setPhotoCount(int photoCount) {
+        this.photoCount = photoCount;
     }
 }

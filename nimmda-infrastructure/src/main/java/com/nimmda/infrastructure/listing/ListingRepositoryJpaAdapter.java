@@ -1,5 +1,6 @@
 package com.nimmda.infrastructure.listing;
 
+import com.nimmda.application.listing.ListingPhotoAddresses;
 import com.nimmda.domain.listing.Category;
 import com.nimmda.domain.listing.Listing;
 import com.nimmda.domain.listing.ListingId;
@@ -12,7 +13,11 @@ import com.nimmda.domain.listing.Location;
 import com.nimmda.domain.listing.Money;
 import com.nimmda.domain.geo.GeoCoordinates;
 import com.nimmda.domain.shared.UserId;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CompoundSelection;
 import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Order;
 import jakarta.persistence.criteria.Predicate;
@@ -20,8 +25,6 @@ import jakarta.persistence.criteria.Root;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
@@ -40,9 +43,17 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
     };
 
     private final SpringDataListingJpaRepository jpaRepository;
+    private final EntityManager entityManager;
+    private final ListingPhotoAddresses photoAddresses;
 
-    public ListingRepositoryJpaAdapter(SpringDataListingJpaRepository jpaRepository) {
+    public ListingRepositoryJpaAdapter(
+            SpringDataListingJpaRepository jpaRepository,
+            EntityManager entityManager,
+            ListingPhotoAddresses photoAddresses
+    ) {
         this.jpaRepository = jpaRepository;
+        this.entityManager = entityManager;
+        this.photoAddresses = photoAddresses;
     }
 
     @Override
@@ -60,28 +71,47 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
         ListingSearch criteria = search == null ? ListingSearch.allPublished() : search;
         int safePage = Math.max(page, 0);
         int safeSize = size < 1 ? 20 : size;
-        var result = jpaRepository.findAll(
-                publishedSpec(criteria),
-                PageRequest.of(safePage, safeSize, Sort.unsorted())
-        );
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<ListingCard> rows = cb.createQuery(ListingCard.class);
+        Root<ListingJpaEntity> root = rows.from(ListingJpaEntity.class);
+        rows.select(cardSelection(cb, root));
+        Specification<ListingJpaEntity> spec = publishedSpec(criteria);
+        rows.where(spec.toPredicate(root, rows, cb));
+        TypedQuery<ListingCard> query = entityManager.createQuery(rows);
+        query.setFirstResult(safePage * safeSize);
+        query.setMaxResults(safeSize);
+
+        CriteriaQuery<Long> count = cb.createQuery(Long.class);
+        Root<ListingJpaEntity> countRoot = count.from(ListingJpaEntity.class);
+        count.select(cb.count(countRoot));
+        count.where(spec.toPredicate(countRoot, count, cb));
+        long total = entityManager.createQuery(count).getSingleResult();
         return new ListingSearchResult(
-                result.getContent().stream().map(this::toDomain).toList(),
-                result.getNumber(),
-                result.getSize(),
-                result.getTotalElements()
+                query.getResultList().stream().map(this::cardToDomain).toList(),
+                safePage,
+                safeSize,
+                total
         );
     }
 
     @Override
     public List<Listing> findBySellerId(UserId sellerId) {
-        return jpaRepository.findBySellerIdOrderByCreatedAtDesc(sellerId.value()).stream()
-                .map(this::toDomain)
-                .toList();
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<ListingCard> rows = cb.createQuery(ListingCard.class);
+        Root<ListingJpaEntity> root = rows.from(ListingJpaEntity.class);
+        rows.select(cardSelection(cb, root));
+        rows.where(cb.equal(root.get("sellerId"), sellerId.value()));
+        rows.orderBy(cb.desc(root.get("createdAt")));
+        return entityManager.createQuery(rows).getResultList().stream().map(this::cardToDomain).toList();
     }
 
     @Override
     public List<Listing> findAll() {
-        return jpaRepository.findAll().stream().map(this::toDomain).toList();
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<ListingCard> rows = cb.createQuery(ListingCard.class);
+        Root<ListingJpaEntity> root = rows.from(ListingJpaEntity.class);
+        rows.select(cardSelection(cb, root));
+        return entityManager.createQuery(rows).getResultList().stream().map(this::cardToDomain).toList();
     }
 
     @Override
@@ -189,6 +219,7 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
         entity.setCreatedAt(listing.createdAt());
         entity.setUpdatedAt(listing.updatedAt());
         entity.setPromotedUntil(listing.promotedUntil());
+        entity.setPhotoCount(Math.max(1, Math.min(listing.images().size(), 5)));
         return entity;
     }
 
@@ -213,6 +244,49 @@ public class ListingRepositoryJpaAdapter implements ListingRepository {
         } catch (JsonProcessingException exception) {
             return imageSrc == null || imageSrc.isBlank() ? List.of() : List.of(imageSrc);
         }
+    }
+
+    private CompoundSelection<ListingCard> cardSelection(CriteriaBuilder cb, Root<ListingJpaEntity> root) {
+        return cb.construct(
+                ListingCard.class,
+                root.get("id"),
+                root.get("sellerId"),
+                root.get("title"),
+                root.get("price"),
+                root.get("category"),
+                root.get("location"),
+                root.get("latitude"),
+                root.get("longitude"),
+                root.get("description"),
+                root.get("status"),
+                root.get("views"),
+                root.get("chats"),
+                root.get("createdAt"),
+                root.get("updatedAt"),
+                root.get("promotedUntil"),
+                root.get("photoCount")
+        );
+    }
+
+    private Listing cardToDomain(ListingCard card) {
+        List<String> photos = photoAddresses.links(card.id(), card.photoCount(), card.updatedAt());
+        return Listing.rehydrate(
+                new ListingId(card.id()),
+                new UserId(card.sellerId()),
+                card.title(),
+                Money.of(card.price()),
+                new Category(card.category()),
+                new Location(card.location(), toCoordinates(card.latitude(), card.longitude())),
+                photos.get(0),
+                photos,
+                card.description(),
+                ListingStatus.valueOf(card.status().name()),
+                card.views(),
+                card.chats(),
+                card.createdAt(),
+                card.updatedAt(),
+                card.promotedUntil()
+        );
     }
 
     private Listing toDomain(ListingJpaEntity entity) {
