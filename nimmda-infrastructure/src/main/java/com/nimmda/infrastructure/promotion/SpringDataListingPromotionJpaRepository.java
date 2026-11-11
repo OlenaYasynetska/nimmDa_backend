@@ -11,4 +11,6 @@ public interface SpringDataListingPromotionJpaRepository extends JpaRepository<L
     Optional<ListingPromotionJpaEntity> findByProviderSessionId(String providerSessionId);
 
     List<ListingPromotionJpaEntity> findByStatusOrderByPaidAtDesc(PromotionStatus status);
+
+    List<ListingPromotionJpaEntity> findBySellerIdAndStatus(String sellerId, PromotionStatus status);
 }

@@ -6,6 +6,7 @@ import com.nimmda.application.promotion.PromotionCheckout;
 import com.nimmda.application.promotion.PromotionException;
 import com.nimmda.application.promotion.PromotionWebhook;
 import com.nimmda.application.promotion.StartedCheckout;
+import com.stripe.exception.EventDataObjectDeserializationException;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Event;
@@ -111,6 +112,13 @@ public class StripePromotionAdapter implements PromotionCheckout, PromotionWebho
             return Optional.empty();
         }
         StripeObject object = event.getDataObjectDeserializer().getObject().orElse(null);
+        if (object == null) {
+            try {
+                object = event.getDataObjectDeserializer().deserializeUnsafe();
+            } catch (EventDataObjectDeserializationException ex) {
+                throw new PromotionException("invalid", "Stripe-Ereignis konnte nicht gelesen werden.");
+            }
+        }
         if (!(object instanceof Session session)) {
             throw new PromotionException("invalid", "Stripe-Ereignis konnte nicht gelesen werden.");
         }

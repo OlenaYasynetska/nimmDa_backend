@@ -1,5 +1,7 @@
 package com.nimmda.domain.promotion;
 
+import com.nimmda.domain.shared.UserId;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -12,4 +14,6 @@ public interface ListingPromotionRepository {
     Optional<ListingPromotion> findByProviderSessionId(String providerSessionId);
 
     List<ListingPromotion> findPaid();
+
+    List<ListingPromotion> findPendingBySeller(UserId sellerId);
 }

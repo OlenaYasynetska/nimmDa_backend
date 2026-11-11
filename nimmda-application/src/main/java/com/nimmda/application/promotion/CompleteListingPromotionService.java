@@ -7,6 +7,7 @@ import com.nimmda.domain.promotion.ListingPromotion;
 import com.nimmda.domain.promotion.ListingPromotionRepository;
 import com.nimmda.domain.user.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
@@ -32,7 +33,7 @@ public class CompleteListingPromotionService {
         this.sendPaymentReceiptService = sendPaymentReceiptService;
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ListingPromotion execute(String orderId, String providerSessionId) {
         ListingPromotion promotion = promotionRepository.findById(orderId)
                 .orElseThrow(() -> new PromotionException("notFound", "Zahlung wurde nicht gefunden."));

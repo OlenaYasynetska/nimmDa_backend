@@ -41,6 +41,13 @@ public class ListingPromotionRepositoryJpaAdapter implements ListingPromotionRep
                 .toList();
     }
 
+    @Override
+    public List<ListingPromotion> findPendingBySeller(UserId sellerId) {
+        return jpaRepository.findBySellerIdAndStatus(sellerId.value(), PromotionStatus.PENDING).stream()
+                .map(this::toDomain)
+                .toList();
+    }
+
     private ListingPromotionJpaEntity toEntity(ListingPromotion promotion) {
         ListingPromotionJpaEntity entity = new ListingPromotionJpaEntity();
         entity.setId(promotion.id());
